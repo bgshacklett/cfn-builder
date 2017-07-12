@@ -60,14 +60,28 @@ function New-CfnSecurityGroup
                             | ConvertTo-SecurityGroupEgress -Region $Region
 
 
+    $logicalQueryParams =
+    @{
+      'Region'             = $Region
+      'StackName'          = $StackName
+      'PhysicalResourceId' = $SecurityGroup.GroupId
+    }
+    $sgLogicalId = Get-CfnLogicalResourceId @logicalQueryParams
+
+    Write-Debug "SG Logical ID: $sgLogicalId"
     
-    [PSCustomObject]@{
-      'GroupName'            = $SecurityGroup.GroupName
-      'GroupDescription'     = $SecurityGroup.Description
-      'SecurityGroupIngress' = @($securityGroupIngress)
-      'SecurityGroupEgress'  = @($securityGroupEgress)
-      'Tags'                 = $SecurityGroup.Tags
-      'VpcId'                = $SecurityGroup.VpcId
+    @{
+      $sgLogicalId = [PSCustomObject]@{
+        'Type'                 = 'AWS::EC2::SecurityGroup'
+        'Properties' = [PSCustomObject]@{
+          'GroupName'            = $SecurityGroup.GroupName
+          'GroupDescription'     = $SecurityGroup.Description
+          'SecurityGroupIngress' = @($securityGroupIngress)
+          'SecurityGroupEgress'  = @($securityGroupEgress)
+          'Tags'                 = $SecurityGroup.Tags
+          'VpcId'                = $SecurityGroup.VpcId
+        }
+      }
     }
   }
 
