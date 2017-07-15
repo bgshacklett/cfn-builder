@@ -72,7 +72,7 @@ function New-CfnSecurityGroup
     
     @{
       $sgLogicalId = [PSCustomObject]@{
-        'Type'                 = 'AWS::EC2::SecurityGroup'
+        'Type'       = 'AWS::EC2::SecurityGroup'
         'Properties' = [PSCustomObject]@{
           'GroupName'            = $SecurityGroup.GroupName
           'GroupDescription'     = $SecurityGroup.Description
