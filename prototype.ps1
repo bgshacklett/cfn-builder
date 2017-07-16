@@ -53,11 +53,13 @@ function New-CfnSecurityGroup
   {
     Write-Verbose ('Creating a New CfnSecurityGroup object from security group "{0}" associated with Cfn stack "{1}".' -f $SecurityGroup, $StackName)
 
-    $securityGroupIngress = $SecurityGroup.IpPermissions `
-                            | ConvertTo-SecurityGroupIngress -Region $Region
+    $securityGroupIngress =
+      $SecurityGroup.IpPermissions `
+      | ConvertTo-SecurityGroupRuleSet -Region $Region -FlowDirection 'Ingress'
 
-    $securityGroupEgress  = $SecurityGroup.IpPermissionsEgress `
-                            | ConvertTo-SecurityGroupEgress -Region $Region
+    $securityGroupEgress  =
+      $SecurityGroup.IpPermissionsEgress `
+      | ConvertTo-SecurityGroupRuleSet -Region $Region -FlowDirection 'Egress'
 
 
     $logicalQueryParams =
@@ -69,6 +71,8 @@ function New-CfnSecurityGroup
     $sgLogicalId = Get-CfnLogicalResourceId @logicalQueryParams
 
     Write-Debug "SG Logical ID: $sgLogicalId"
+
+    $sgTags = $SecurityGroup.Tags | Where-Object { $_.key -notlike 'aws:*' }
     
     @{
       $sgLogicalId = [PSCustomObject]@{
@@ -78,7 +82,7 @@ function New-CfnSecurityGroup
           'GroupDescription'     = $SecurityGroup.Description
           'SecurityGroupIngress' = @($securityGroupIngress)
           'SecurityGroupEgress'  = @($securityGroupEgress)
-          'Tags'                 = $SecurityGroup.Tags
+          'Tags'                 = $sgTags
           'VpcId'                = $SecurityGroup.VpcId
         }
       }
@@ -89,50 +93,7 @@ function New-CfnSecurityGroup
 }
 
 
-function ConvertTo-SecurityGroupIngress
-{
-  [CmdletBinding()]
-  Param
-  (
-    [Parameter(ValueFromPipeline=$true)]
-    $InputObject,
-    
-    [Parameter(Mandatory=$true)]
-    $Region
-  )
-
-  Begin
-  {
-    Write-Verbose 'Converting an IpPermissions collection to the SecurityGroupIngress format.'
-  }
-
-  Process
-  {
-    Write-Verbose 'Processing an IpPermission entity'
-
-    $params =
-    @{
-      'FromPort'   = $InputObject.FromPort
-      'ToPort'     = $InputObject.ToPort
-      'IpProtocol' = $InputObject.IpProtocol
-      'Region'     = $Region
-    }
-
-    $InputObject.IpRanges +
-    $InputObject.Ipv6Ranges +
-    $InputObject.UserIdGroupPairs `
-    | ConvertTo-Ec2SecurityGroupRule @params
-  }
-
-  End
-  {
-    Write-Verbose 'Finished processing the IpPermissions collection.'
-  }
-}
-
-
-
-function ConvertTo-SecurityGroupEgress
+function ConvertTo-SecurityGroupRuleSet
 {
   [CmdletBinding()]
   Param
@@ -141,27 +102,32 @@ function ConvertTo-SecurityGroupEgress
     $InputObject,
     
     [Parameter()]
-    $Region
+    $Region,
+
+    [Parameter(Mandatory=$true)]
+    [ValidateSet('Ingress','Egress')]
+    [String]$FlowDirection
   )
 
   Begin
   {
-    Write-Verbose 'Converting an IpPermissionsEgress collection to the SecurityGroupEgress format.'
+    Write-Verbose 'Converting an IpPermissions[Egress] collection.'
   }
 
   Process
   {
-    Write-Verbose 'Processing an IpPermissionEgress entity.'
+    Write-Verbose 'Processing an IpPermission[Egress] entity.'
 
     $params =
     @{
-      'FromPort'   = $InputObject.FromPort
-      'ToPort'     = $InputObject.ToPort
-      'IpProtocol' = $InputObject.IpProtocol
-      'Region'     = $Region
+      'FromPort'      = $InputObject.FromPort
+      'ToPort'        = $InputObject.ToPort
+      'IpProtocol'    = $InputObject.IpProtocol
+      'FlowDirection' = $FlowDirection
+      'Region'        = $Region
     }
 
-    # Aggregating all of the source types and pass them on for rule creation
+    # Aggregating all of the peer types and pass them on for rule creation
     $InputObject.IpRanges +
     $InputObject.Ipv6Ranges +
     $InputObject.PrefixListIds +
@@ -190,6 +156,9 @@ function ConvertTo-Ec2SecurityGroupRule
     [Parameter()]
     $IpProtocol,
 
+    [Parameter()]
+    $FlowDirection,
+
     [Parameter(ValueFromPipeline=$true)]
     $InputObject,
 
@@ -199,7 +168,7 @@ function ConvertTo-Ec2SecurityGroupRule
 
   Begin
   {
-$fmtIngressRuleContext =
+    $fmtRuleContext =
 @'
 Received the following input...
   Port Range:   {0}-{1}
@@ -208,114 +177,67 @@ Received the following input...
   Region:       {4}
 '@
 
-$fmtIngressRuleDetails =
-@'
-Creating a new Ingress Rule...
-  Region:              {0}
-  StackName:           {1}
-  InputObject.GroupId: {2}
-  Rule Source:         {3}
-'@
+    $peerRelationship =
+    @{
+      'ingress' = 'source'
+      'egress'  = 'destination'
+    }
 
+    $peerType =
+    @{
+      'String'          = 'CidrIp'
+      'Ipv6Range'       = 'CidrIpv6'
+      'PrefixListId'    = 'DestinationPrefixListId'
+      'UserIdGroupPair' = "$($peerRelationship.$FlowDirection)SecurityGroupId"
+    }
   }
 
   Process
   {
-    Write-Verbose 'Converting an IpPermission entry to an EC2 Security Group Rule'
+    Write-Verbose 'Converting an IpPermission entry to an EC2 SG Rule'
 
-    Write-Debug ($fmtIngressRuleContext -f $FromPort, $ToPort, $IpProtocol, $InputObject, $Region)
+    Write-Debug ($fmtRuleContext -f $FromPort,
+                                    $ToPort,
+                                    $IpProtocol,
+                                    $InputObject,
+                                    $Region)
 
-    $ruleType = $InputObject.GetType().Name
-
-    $ingressRuleParams =
+    $ingressRuleProperties =
     @{
       'FromPort'   = $FromPort
       'ToPort'     = $ToPort
       'IpProtocol' = $IpProtocol
     }
 
-    Switch ($ruleType)
+    $ruleType = $InputObject.GetType().Name
+
+    Write-Verbose ('The peer type is: "{0}"' -f $peerType.$ruleType)
+
+    # UserIdGroupPairs need to be treated differently because they require
+    # further discovery
+    If ($ruleType -eq 'UserIdGroupPair')
     {
-      'String'
-      {
-        Write-Verbose 'The source is an IPv4 IP Address Range'
-        $ingressRuleParams.Add('CidrIp', $InputObject)
+      Write-Verbose 'The peer is a reference to another Security Group'
+      # If this is a Security Group in the same Template, we'll want to
+      # replace the hard coded ID with a "Ref" function to the logical ID of
+      # the security group. If not, we can leave the ID in place.
 
-        New-Ec2SecurityGroupRule @ingressRuleParams
+      $uidGroupPairConversionArgs =
+      @{
+        'GroupId'   = $InputObject.GroupId
+        'Region'    = $Region
+        'StackName' = $StackName
       }
+      $ruleSource = ConvertFrom-UserIdGroupPair @uidGroupPairConversionArgs
 
-      'Ipv6Range'
-      {
-        Write-Verbose 'The source is an IPv6 IP Address Range'
-        $ingressRuleParams.Add('CidrIpv6', $InputObject)
-
-        New-Ec2SecurityGroupRule @ingressRuleParams
-      }
-
-      'PrefixListId'
-      {
-        Write-Verbose 'The source is a PrefixList Id.'
-        Write-Verbose 'This is not supported for Ingress Rules'
-
-        throw ('This rule specifies a Prefix List ({0}) which is not supported for Ingress rules') -f $InputObject
-      }
-
-      'UserIdGroupPair'
-      {
-        Write-Verbose 'The source is a reference to another Security Group'
-        # If this is a Security Group in the same Template, we'll want to
-        # replace the hard coded ID with a "Ref" function to the logical ID of
-        # the security group. If not, we can leave the ID in place.
-
-        Write-Debug ('Searching for the SG {0} in the Stack "{1}".' `
-                       -f $InputObject.GroupId, $StackName)
-        try
-        {
-          $resourceQueryParams =
-          @{
-            'Region'             = $Region
-            'StackName'          = $StackName
-            'PhysicalResourceId' = $InputObject.GroupId
-          }
-          $logicalResourceId = Get-CfnLogicalResourceId @resourceQueryParams
-
-          $ref = @{ 'Ref' = $logicalResourceId }
-        }
-        catch
-        {
-          Write-Verbose ('Unable to locate SG {0} in stack {1}' `
-                         -f $InputObject.GroupId, $StackName)
-
-          throw $_
-        }
-
-
-        $ruleSource = $null
-        if ([bool]$ref)
-        {
-          Write-Verbose ('A reference was discovered. SG {0} has a logical resource id of {1} in stack {2}' -f $InputObject.GroupId, $logicalResourceId, $StackName)
-          $ruleSource = $ref
-        }
-        else
-        {
-          $ruleSource = $InputObject.GroupId
-        }
-
-        $ingressRuleParams.Add('SourceSecurityGroupId', $ruleSource)
-
-        Write-Debug ($fmtIngressRuleDetails -f $Region,
-                                               $StackName,
-                                               $InputObject.GroupId,
-                                               $ruleSource)
-
-        New-Ec2SecurityGroupRule @ingressRuleParams
-      }
-
-      default
-      {
-        throw 'Unknown Security Rule Source Type: "{0}"' -f $ruleType
-      }
+      $ingressRuleProperties.Add($peerType.$ruleType, $ruleSource)
     }
+    else
+    {
+      $ingressRuleProperties.Add($peerType.$ruleType, $InputObject)
+    }
+
+    New-Ec2SecurityGroupRule @ingressRuleProperties
   }
 
   End
@@ -324,6 +246,69 @@ Creating a new Ingress Rule...
   }
 }
 
+
+function ConvertFrom-UserIdGroupPair
+{
+  [CmdletBinding()]
+  Param
+  (
+    $GroupId,
+    $Region,
+    $StackName
+  )
+
+  Begin {}
+
+  Process
+  {
+    Write-Debug ('Searching for the SG {0} in the Stack "{1}".' `
+                   -f $GroupId, $StackName)
+
+    $refQueryParams =
+    @{
+      'Region'             = $Region
+      'StackName'          = $StackName
+      'PhysicalResourceId' = $GroupId
+    }
+    # Return either a 'Ref' or the Group ID if the Ref is null.
+    ((Get-CfnReference @refQueryParams),$GroupId -ne $null)[0]
+  }
+
+  End {}
+}
+
+
+function Get-CfnReference
+{
+  [CmdletBinding()]
+  Param
+  (
+    $PhysicalResourceId,
+    $StackName,
+
+    [Parameter(Mandatory=$true)]
+    $Region
+  )
+
+  Begin {} 
+
+  Process
+  {
+    $resourceQueryParams =
+    @{
+      'Region'             = $Region
+      'StackName'          = $StackName
+      'PhysicalResourceId' = $PhysicalResourceId
+    }
+    $logicalResourceId = Get-CfnLogicalResourceId @resourceQueryParams
+
+
+    # Return a 'Ref' hashtable, but only if it's not null
+    @{ 'Ref' = $logicalResourceId } | Where-Object { $_.Ref }
+  }
+
+  End {}
+}
 
 
 function Get-CfnLogicalResourceId
@@ -362,16 +347,19 @@ function New-Ec2SecurityGroupRule
     [Parameter(ParameterSetName = 'CidrIp')]
     [Parameter(ParameterSetName = 'CidrIpv6')]
     [Parameter(ParameterSetName = 'SourceSecurityGroupId')]
+    [Parameter(ParameterSetName = 'DestinationPrefixListId')]
     $FromPort,
 
     [Parameter(ParameterSetName = 'CidrIp')]
     [Parameter(ParameterSetName = 'CidrIpv6')]
     [Parameter(ParameterSetName = 'SourceSecurityGroupId')]
+    [Parameter(ParameterSetName = 'DestinationPrefixListId')]
     $ToPort,
 
     [Parameter(ParameterSetName = 'CidrIp')]
     [Parameter(ParameterSetName = 'CidrIpv6')]
     [Parameter(ParameterSetName = 'SourceSecurityGroupId')]
+    [Parameter(ParameterSetName = 'DestinationPrefixListId')]
     $IpProtocol,
 
     [Parameter(ParameterSetName = 'CidrIp')]
@@ -379,6 +367,9 @@ function New-Ec2SecurityGroupRule
 
     [Parameter(ParameterSetName = 'CidrIpv6')]
     $CidrIpv6,
+
+    [Parameter(ParameterSetName = 'DestinationPrefixListId')]
+    $DestinationPrefixListId,
 
     [Parameter(ParameterSetName = 'SourceSecurityGroupId')]
     $SourceSecurityGroupId
@@ -419,6 +410,16 @@ function New-Ec2SecurityGroupRule
           'FromPort'              = $FromPort
           'ToPort'                = $ToPort
           'SourceSecurityGroupId' = $SourceSecurityGroupId
+        }
+      }
+
+      'DestinationPrefixListId'
+      {
+        @{
+          'IpProtocol'              = $IpProtocol
+          'FromPort'                = $FromPort
+          'ToPort'                  = $ToPort
+          'DestinationPrefixListId' = $DestinationPrefixListId
         }
       }
 
