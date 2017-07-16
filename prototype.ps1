@@ -14,13 +14,23 @@ function Update-SecurityGroupTemplate
 
   Process
   {
-    Get-ManagedSecurityGroup -Region $Region -StackName $StackName `
+    $template  = Get-Content -Path $Path | ConvertFrom-Json
+
+    $resources = Get-ManagedSecurityGroup -Region $Region -StackName $StackName `
     | ForEach-Object {
       New-CfnSecurityGroup -SecurityGroup $_ -StackName $StackName -Region $Region
-    } `
-    | ForEach-Object {
-      Set-TemplateSecurityGroup -Path $Path
     }
+
+    foreach ($key in $resources.keys)
+    {
+      $template.Resources.PSobject.Properties.Remove($key)
+      $template.Resources `
+      | Add-Member -Name $key -Value $resources.$key -MemberType NoteProperty
+    }
+
+    $template `
+    | ConvertTo-Json -Depth 99 `
+    | Out-File -Encoding utf8 -FilePath $Path
   }
 
   End {}
@@ -179,8 +189,8 @@ Received the following input...
 
     $peerRelationship =
     @{
-      'ingress' = 'source'
-      'egress'  = 'destination'
+      'Ingress' = 'Source'
+      'Egress'  = 'Destination'
     }
 
     $peerType =
@@ -202,7 +212,7 @@ Received the following input...
                                     $InputObject,
                                     $Region)
 
-    $ingressRuleProperties =
+    $ruleProperties =
     @{
       'FromPort'   = $FromPort
       'ToPort'     = $ToPort
@@ -228,16 +238,16 @@ Received the following input...
         'Region'    = $Region
         'StackName' = $StackName
       }
-      $ruleSource = ConvertFrom-UserIdGroupPair @uidGroupPairConversionArgs
-
-      $ingressRuleProperties.Add($peerType.$ruleType, $ruleSource)
+      $peer = ConvertFrom-UserIdGroupPair @uidGroupPairConversionArgs
     }
     else
     {
-      $ingressRuleProperties.Add($peerType.$ruleType, $InputObject)
+      $peer = $InputObject
     }
 
-    New-Ec2SecurityGroupRule @ingressRuleProperties
+    $ruleProperties.Add($peerType.$ruleType, $peer)
+
+    New-Ec2SecurityGroupRule @ruleProperties
   }
 
   End
@@ -346,20 +356,23 @@ function New-Ec2SecurityGroupRule
   (
     [Parameter(ParameterSetName = 'CidrIp')]
     [Parameter(ParameterSetName = 'CidrIpv6')]
-    [Parameter(ParameterSetName = 'SourceSecurityGroupId')]
     [Parameter(ParameterSetName = 'DestinationPrefixListId')]
+    [Parameter(ParameterSetName = 'SourceSecurityGroupId')]
+    [Parameter(ParameterSetName = 'DestinationSecurityGroupId')]
     $FromPort,
 
     [Parameter(ParameterSetName = 'CidrIp')]
     [Parameter(ParameterSetName = 'CidrIpv6')]
-    [Parameter(ParameterSetName = 'SourceSecurityGroupId')]
     [Parameter(ParameterSetName = 'DestinationPrefixListId')]
+    [Parameter(ParameterSetName = 'SourceSecurityGroupId')]
+    [Parameter(ParameterSetName = 'DestinationSecurityGroupId')]
     $ToPort,
 
     [Parameter(ParameterSetName = 'CidrIp')]
     [Parameter(ParameterSetName = 'CidrIpv6')]
-    [Parameter(ParameterSetName = 'SourceSecurityGroupId')]
     [Parameter(ParameterSetName = 'DestinationPrefixListId')]
+    [Parameter(ParameterSetName = 'SourceSecurityGroupId')]
+    [Parameter(ParameterSetName = 'DestinationSecurityGroupId')]
     $IpProtocol,
 
     [Parameter(ParameterSetName = 'CidrIp')]
@@ -371,6 +384,9 @@ function New-Ec2SecurityGroupRule
     [Parameter(ParameterSetName = 'DestinationPrefixListId')]
     $DestinationPrefixListId,
 
+    [Parameter(ParameterSetName = 'DestinationSecurityGroupId')]
+    $DestinationSecurityGroupId,
+
     [Parameter(ParameterSetName = 'SourceSecurityGroupId')]
     $SourceSecurityGroupId
   )
@@ -381,52 +397,17 @@ function New-Ec2SecurityGroupRule
   {
     Write-Verbose 'Building a new EC2 Security Group Rule'
 
-    Switch ($PsCmdlet.ParameterSetName)
-    {
-      'CidrIp'
-      {
-        @{
-          'IpProtocol' = $IpProtocol
-          'FromPort'   = $FromPort
-          'ToPort'     = $ToPort
-          'CidrIp'     = $CidrIp
-        }
-      }
+    # The peer type is decided based on which peer parameter is passed in.
+    $peerType  = $PsCmdlet.ParameterSetName
 
-      'CidrIpv6'
-      {
-        @{
-          'IpProtocol' = $IpProtocol
-          'FromPort'   = $FromPort
-          'ToPort'     = $ToPort
-          'CidrIpv6'   = $CidrIpv6
-        }
-      }
+    # We get the peer value from the value of the afore-mentioned parameter.
+    $peerValue = $PSBoundParameters.$peerType
 
-      'SourceSecurityGroupId'
-      {
-        @{
-          'IpProtocol'            = $IpProtocol
-          'FromPort'              = $FromPort
-          'ToPort'                = $ToPort
-          'SourceSecurityGroupId' = $SourceSecurityGroupId
-        }
-      }
-
-      'DestinationPrefixListId'
-      {
-        @{
-          'IpProtocol'              = $IpProtocol
-          'FromPort'                = $FromPort
-          'ToPort'                  = $ToPort
-          'DestinationPrefixListId' = $DestinationPrefixListId
-        }
-      }
-
-      default
-      {
-        throw ('Uknown Parameter Set Name "{0}"') -f $PsCmdlet.ParameterSetName
-      }
+    @{
+      'IpProtocol' = $IpProtocol
+      'FromPort'   = $FromPort
+      'ToPort'     = $ToPort
+      "$peerType"  = $peerValue
     }
   }
 
@@ -453,7 +434,9 @@ function Get-ManagedSecurityGroup
     Get-CfnStackResources -Region $Region -StackName $StackName `
     | Where-Object {
       $_.ResourceType -eq 'AWS::EC2::SecurityGroup'
-    }
+    } `
+    | Select-Object -ExpandProperty PhysicalResourceId `
+    | Get-Ec2SecurityGroup -Region $Region
   }
 
   End {}
