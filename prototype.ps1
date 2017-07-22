@@ -37,13 +37,6 @@ function Update-SecurityGroupTemplate
 }
 
 
-function Set-TemplateSecurityGroup
-{
-  throw [System.NotImplementedException]
-}
-
-
-
 function New-CfnSecurityGroup
 {
   [CmdletBinding()]
