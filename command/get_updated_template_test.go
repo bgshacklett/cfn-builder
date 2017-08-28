@@ -21,10 +21,13 @@ var testUpdateStrategy cfn.TemplateUpdateStrategy = func(
 	return strings.Join([]string{path, stackName, region}, ","), nil
 }
 
-// TestUpdateTemplate is a Unit Test for the UpdateTemplate function.
+// TestUpdateTemplate contains unit tests for the UpdateTemplate function.
 func TestGetUpdatedTemplate(t *testing.T) {
 
-	testCases := []struct {
+	/*
+	 * Test Cases
+	 */
+	testCasesParams := []struct {
 		path      string
 		stackName string
 		region    string
@@ -33,30 +36,35 @@ func TestGetUpdatedTemplate(t *testing.T) {
 		{"path", "stackName", "region", "path,stackName,region"},
 	}
 
-	for _, tc := range testCases {
+	/*
+	 * Test Logic
+	 */
+	for _, tc := range testCasesParams {
 
 		// Setup
-		testBuffer := bytes.NewBuffer(nil)
+		testBuffer := bytes.NewBuffer(nil) // Takes the place of os.StdOut so we can see the result.
 
 		// Run tests
-		t.Run(fmt.Sprintf("%s, %s, %s", tc.path, tc.stackName, tc.region), func(t *testing.T) {
-			var actual string
+		t.Run(
+			fmt.Sprintf("%s, %s, %s", tc.path, tc.stackName, tc.region),
+			func(t *testing.T) {
+				var actual string
 
-			err := GetUpdatedTemplate(
-				tc.path,
-				tc.stackName,
-				tc.region,
-				testBuffer,
-				testUpdateStrategy,
-			)
-			assert.NoError(t, err, "The function does not throw an error.")
+				err := GetUpdatedTemplate(
+					tc.path,
+					tc.stackName,
+					tc.region,
+					testBuffer,
+					testUpdateStrategy,
+				)
+				assert.NoError(t, err, "The function does not throw an error.")
 
-			result, _ := ioutil.ReadAll(testBuffer)
+				result, _ := ioutil.ReadAll(testBuffer)
 
-			actual = string(result)
+				actual = string(result)
 
-			assert.Equal(t, tc.expected, actual, "The inputs are passed in correctly.")
-		})
+				assert.Equal(t, tc.expected, actual, "The inputs are passed in correctly.")
+			})
 
 		// Teardown
 		testBuffer = nil
