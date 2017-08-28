@@ -2,7 +2,7 @@ package main
 
 import (
 	"extropy/cfn"
-	"extropy/command"
+	"extropy/ui/command"
 	"github.com/urfave/cli"
 	"os"
 )
