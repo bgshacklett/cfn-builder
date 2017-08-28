@@ -17,7 +17,7 @@ func GetUpdatedTemplate(
 
 ) error {
 
-	result, err := updateStrategy(path, stackName, region)
+	result, err := updateStrategy.Execute(path, stackName, region)
 	if err != nil {
 		return err
 	}

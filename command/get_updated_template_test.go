@@ -2,7 +2,6 @@ package command
 
 import (
 	"bytes"
-	"extropy/cfn"
 	"fmt"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
@@ -10,7 +9,9 @@ import (
 	"testing"
 )
 
-var testUpdateStrategy cfn.TemplateUpdateStrategy = func(
+type testUpdateStrategy struct{}
+
+func (self *testUpdateStrategy) Execute(
 
 	path string,
 	stackName string,
@@ -55,7 +56,7 @@ func TestGetUpdatedTemplate(t *testing.T) {
 					tc.stackName,
 					tc.region,
 					testBuffer,
-					testUpdateStrategy,
+					new(testUpdateStrategy),
 				)
 				assert.NoError(t, err, "The function does not throw an error.")
 
