@@ -3,6 +3,7 @@ package command
 import (
 	"bytes"
 	"extropy/cfn"
+	"fmt"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"strings"
@@ -23,23 +24,41 @@ var testUpdateStrategy cfn.TemplateUpdateStrategy = func(
 // TestUpdateTemplate is a Unit Test for the UpdateTemplate function.
 func TestGetUpdatedTemplate(t *testing.T) {
 
-	testBuffer := bytes.NewBuffer(nil)
+	testCases := []struct {
+		path      string
+		stackName string
+		region    string
+		expected  string
+	}{
+		{"path", "stackName", "region", "path,stackName,region"},
+	}
 
-	expected := "path,stackName,region"
-	var actual string
+	for _, tc := range testCases {
 
-	err := GetUpdatedTemplate(
-		"path",
-		"stackName",
-		"region",
-		testBuffer,
-		testUpdateStrategy,
-	)
-	assert.NoError(t, err, "The function does not throw an error.")
+		// Setup
+		testBuffer := bytes.NewBuffer(nil)
 
-	result, _ := ioutil.ReadAll(testBuffer)
+		// Run tests
+		t.Run(fmt.Sprintf("%s, %s, %s", tc.path, tc.stackName, tc.region), func(t *testing.T) {
+			var actual string
 
-	actual = string(result)
+			err := GetUpdatedTemplate(
+				tc.path,
+				tc.stackName,
+				tc.region,
+				testBuffer,
+				testUpdateStrategy,
+			)
+			assert.NoError(t, err, "The function does not throw an error.")
 
-	assert.Equal(t, expected, actual, "The inputs are passed in correctly.")
+			result, _ := ioutil.ReadAll(testBuffer)
+
+			actual = string(result)
+
+			assert.Equal(t, tc.expected, actual, "The inputs are passed in correctly.")
+		})
+
+		// Teardown
+		testBuffer = nil
+	}
 }
