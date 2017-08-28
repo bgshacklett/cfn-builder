@@ -9,7 +9,8 @@ type TemplateUpdateStrategy interface {
 // DefaultUpdateStrategy currently returns a bogus string.
 type DefaultUpdateStrategy struct{}
 
-func (self *DefaultUpdateStrategy) Execute(
+// Execute implements the Execute
+func (r *DefaultUpdateStrategy) Execute(
 	path string,
 	stackName string,
 	region string,

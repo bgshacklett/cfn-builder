@@ -11,7 +11,7 @@ import (
 
 type testUpdateStrategy struct{}
 
-func (self *testUpdateStrategy) Execute(
+func (r *testUpdateStrategy) Execute(
 
 	path string,
 	stackName string,
