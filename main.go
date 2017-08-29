@@ -47,7 +47,7 @@ func main() {
 					c.String("stack-name"),
 					c.String("region"),
 					os.Stdout,
-					cfn.DefaultUpdateStrategy,
+					new(cfn.DefaultUpdateStrategy),
 				)
 			},
 		},
