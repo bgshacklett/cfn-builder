@@ -1,8 +1,8 @@
 package main
 
 import (
-	"extropy/cfn"
-	"extropy/ui/command"
+	"github.com/bgshacklett/extropy/cfn"
+	"github.com/bgshacklett/extropy/ui/command"
 	"github.com/urfave/cli"
 	"os"
 )

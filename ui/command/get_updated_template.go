@@ -1,8 +1,8 @@
 package command
 
 import (
-	"extropy/cfn"
 	"fmt"
+	"github.com/bgshacklett/extropy/cfn"
 	"io"
 )
 
