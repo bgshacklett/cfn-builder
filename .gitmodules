@@ -1,0 +1,3 @@
+[submodule "vendor/github.com/awslabs/goformation"]
+	path = vendor/github.com/awslabs/goformation
+	url = https://github.com/bgshacklett/goformation.git

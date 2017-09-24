@@ -1,0 +1,10 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"path": "github.com/awslabs/goformation"
+		}
+  ],
+	"rootPath": "github.com/bgshacklett/extropy"
+}
