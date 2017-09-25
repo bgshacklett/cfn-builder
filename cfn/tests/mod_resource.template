@@ -1,0 +1,139 @@
+{
+  "Resources": {
+    "OriginalSecurityGroup01": {
+      "Type" : "AWS::EC2::SecurityGroup",
+      "Properties" : {
+        "GroupName" : "OriginalGroup01",
+        "GroupDescription" : "Original Grroup 01",
+        "SecurityGroupEgress" : [
+          {
+            "DestinationPrefixListId" : "pl-xxxxxxxx",
+            "FromPort" : 80,
+            "IpProtocol" : "tcp",
+            "ToPort" : 80
+          },
+          {
+            "DestinationSecurityGroupId" : "123456789012",
+            "FromPort" : 80,
+            "IpProtocol" : "tcp",
+            "ToPort" : 80
+          },
+          {
+            "CidrIp" : "127.0.0.1/32",
+            "FromPort" : 80,
+            "IpProtocol" : "tcp",
+            "ToPort" : 80
+          },
+          {
+            "CidrIpv6" : "::1/128",
+            "FromPort" : 80,
+            "IpProtocol" : "tcp",
+            "ToPort" : 80
+          }
+        ],
+        "SecurityGroupIngress" : [
+          {
+            "CidrIp" : "127.0.0.1/32",
+            "FromPort" : 80,
+            "IpProtocol" : "tcp",
+            "ToPort" : 80
+          },
+          {
+            "CidrIpv6" : "::1/128",
+            "FromPort" : 80,
+            "IpProtocol" : "tcp",
+            "ToPort" : 80
+          },
+          {
+            "SourceSecurityGroupId" : "sg-xxxxxxxx",
+            "FromPort" : 80,
+            "IpProtocol" : "tcp",
+            "ToPort" : 80
+          },
+          {
+            "SourceSecurityGroupName" : "GroupName",
+            "SourceSecurityGroupOwnerId" : "123456789012",
+            "FromPort" : 80,
+            "IpProtocol" : "tcp",
+            "ToPort" : 80
+          }
+        ],
+        "Tags" :  [
+          {
+            "Key" : "foo",
+            "Value" : "bar"
+          }
+        ],
+        "VpcId" : "vpc-1a2b3c4d"
+      }
+    },
+    "OriginalSecurityResource02": {
+      "Type" : "AWS::EC2::SecurityGroup",
+      "Properties" : {
+        "GroupName" : "OriginalGroup01",
+        "GroupDescription" : "Original Grroup 01",
+        "SecurityGroupEgress" : [
+          {
+            "DestinationPrefixListId" : "pl-xxxxxxxx",
+            "FromPort" : 80,
+            "IpProtocol" : "tcp",
+            "ToPort" : 80
+          },
+          {
+            "DestinationSecurityGroupId" : "123456789012",
+            "FromPort" : 80,
+            "IpProtocol" : "tcp",
+            "ToPort" : 80
+          },
+          {
+            "CidrIp" : "127.0.0.1/32",
+            "FromPort" : 80,
+            "IpProtocol" : "tcp",
+            "ToPort" : 80
+          },
+          {
+            "CidrIpv6" : "::1/128",
+            "FromPort" : 80,
+            "IpProtocol" : "tcp",
+            "ToPort" : 80
+          }
+        ],
+        "SecurityGroupIngress" : [
+          {
+            "CidrIp" : "127.0.0.1/32",
+            "FromPort" : 80,
+            "IpProtocol" : "tcp",
+            "ToPort" : 80
+          },
+          {
+            "CidrIpv6" : "::1/128",
+            "FromPort" : 80,
+            "IpProtocol" : "tcp",
+            "ToPort" : 80
+          },
+          {
+            "SourceSecurityGroupId" : "sg-xxxxxxxx",
+            "FromPort" : 80,
+            "IpProtocol" : "tcp",
+            "ToPort" : 80
+          },
+          {
+            "SourceSecurityGroupName" : "GroupName",
+            "SourceSecurityGroupOwnerId" : "123456789012",
+            "FromPort" : 80,
+            "IpProtocol" : "tcp",
+            "ToPort" : 80
+          }
+        ],
+        "Tags" :  [
+          {
+            "Key" : "foo",
+            "Value" : "bar"
+          }
+        ],
+        "VpcId" : "vpc-1a2b3c4d"
+      }
+    }
+  }
+}
+

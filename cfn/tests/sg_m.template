@@ -1,0 +1,114 @@
+{
+  "SecurityGroup": {
+    "Description": "",
+    "GroupId": "",
+    "GroupName": "",
+    "IpPermissions": [
+      {
+        "FromPort": 80,
+        "IpProtocol": "tcp",
+        "IpRanges": {
+          "CidrIp": "127.0.0.1/32",
+          "Description": "Localhost"
+        },
+        "ToPort": 80
+      },
+      {
+        "FromPort": 80,
+        "IpPrortocol": "tcp",
+        "Ipv6Ranges": {
+          "CidrIpv6":    "::1/128",
+          "Description": "Localhost"
+        },
+        "ToPort": 80
+      },
+      {
+        "FromPort": 80,
+        "IpProtocol":    "tcp",
+        "ToPort": 80,
+        "UserIdGroupPairs": [
+          {
+            "Description": "UserIdGroupPair",
+            "GroupId": "sg-xxxxxxxx",
+            "GroupName": "GroupName",
+            "UserId": "123456789012",
+            "VpcId": "vpc-1a2b3c4d",
+            "VpcPeeringConnectionId": "pcx-111aaa111"
+          }
+        ]
+      },
+      {
+        "FromPort": 80,
+        "IpProtocol": "tcp",
+        "ToPort": 80,
+        "UserIdGroupPairs": [
+          {
+            "Description": "UserIdGroupPair",
+            "GroupId": "sg-xxxxxxxx",
+            "GroupName": "GroupName",
+            "UserId": "123456789012",
+            "VpcId": "vpc-1a2b3c4d",
+            "VpcPeeringConnectionId": "pcx-111aaa111"
+          }
+        ]
+      }
+    ],
+    "IpPermissionsEgress": [
+      {
+        "FromPort":   80,
+        "IpProtocol": "tcp",
+        "IpRanges": [
+          {
+            "CidrIp": "127.0.0.1/32",
+            "Description": "Localhost"
+          }
+        ],
+        "ToPort":           80
+      },
+      {
+        "FromPort": 80,
+        "IpProtocol": "tcp",
+        "Ipv6Ranges": [
+          {
+            "CidrIpv6:    "::1/128",
+            "Description": "Localhost"
+          }
+        ],
+        "ToPort": 80
+      },
+      {
+        "FromPort": 80,
+        "IpProtocol": "tcp",
+        "PrefixListIds": [
+          {
+            "PrefixList",
+            "pl-xxxxxxxx"
+          }
+        ],
+        "ToPort": 80
+      },
+      {
+        "FromPort": 80,
+        "IpProtocol": "tcp",
+        "UserIdGroupPairs": [
+          {
+            "UserIdGroupPair",
+            "sg-xxxxxxxx",
+            "",
+            "vpc-1a2b3c4d",
+            "pcx-111aaa111"
+          }
+        ],
+        "ToPort": 80
+      }
+    ],
+    "123456789012",
+    "Tags": [
+      {
+        "Key":   "foo",
+        "Value": "bar"
+      }
+    ],
+    "vpc-1a2b3c4d"
+  }
+}

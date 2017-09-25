@@ -9,11 +9,14 @@ import (
 // intend to update CloudFormation templates from a live environment.
 type TemplateUpdateStrategy interface {
 	Execute(
-		template cloudformation.Template,
-		stackName string,
+
 		region string,
-		resourceDescriber ResourceDescriber,
-	) (interface{}, error)
+		template *cloudformation.Template,
+		stackName string,
+		cfnMapper aws.CfnMapper,
+		resourceDescriber aws.ResourceDescriber,
+
+	) (*cloudformation.Template, error)
 }
 
 // DefaultUpdateStrategy currently returns a bogus string on execution.
@@ -21,12 +24,14 @@ type DefaultUpdateStrategy struct{}
 
 // Execute implements the Execute
 func (r *DefaultUpdateStrategy) Execute(
-	template cloudformation.Template,
-	stackName string,
+
 	region string,
-	resourceDescriber ResourceDescriber,
+	template *cloudformation.Template,
+	stackName string,
+	cfnMapper aws.CfnMapper,
+	resourceDescriber aws.ResourceDescriber,
 
-) (interface{}, error) {
+) (*cloudformation.Template, error) {
 
-	return "Default Update Strategy", nil
+	return new(cloudformation.Template), nil
 }
