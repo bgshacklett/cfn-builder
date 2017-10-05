@@ -14,8 +14,8 @@ import (
 func newTestTemplate(fileName string) (*cloudformation.Template, error) {
 
 	template := cloudformation.NewTemplate()
-	templateJson, err := ioutil.ReadFile("./tests/" + fileName)
-	json.Unmarshal(templateJson, template)
+	templateJSON, err := ioutil.ReadFile("./tests/" + fileName)
+	json.Unmarshal(templateJSON, template)
 
 	return template, err
 }
@@ -23,8 +23,8 @@ func newTestTemplate(fileName string) (*cloudformation.Template, error) {
 func newTestSecurityGroup(fileName string) (*ec2.SecurityGroup, error) {
 
 	securityGroup := new(ec2.SecurityGroup)
-	securityGroupJson, err := ioutil.ReadFile("./tests/" + fileName)
-	json.Unmarshal(securityGroupJson, securityGroup)
+	securityGroupJSON, err := ioutil.ReadFile("./tests/" + fileName)
+	json.Unmarshal(securityGroupJSON, securityGroup)
 
 	return securityGroup, err
 }
@@ -55,19 +55,30 @@ func (r *testSGDescriber) DescribeResource(
 ) (aws.Resource, error) {
 
 	// Get a mock Security Group object.
-	securityGroup, err := newTestSecurityGroup("sg_m.template")
+	securityGroup, err := newTestSecurityGroup("sg_m.json")
 
 	description := arn.String()
-	groupId := "sg-xxxxxxxx"
+	groupID := "sg-xxxxxxxx"
 	groupName := "GroupName"
 
 	// Configure the object.
 	securityGroup.Description = &description
-	securityGroup.GroupId = &groupId
+	securityGroup.GroupId = &groupID
 	securityGroup.GroupName = &groupName
 
 	// Return the SG
 	return securityGroup, err
+}
+
+type testResourceBuilder struct{}
+
+func (r *testResourceBuilder) Build(physicalResource) (Resource, error) {
+
+	// Get a mock Resource object based on the AWS resource returned above
+	cfnResource := new(cloudformation.AWSEC2SecurityGroup)
+
+	//
+
 }
 
 func TestExecuteModified(t *testing.T) {
@@ -91,6 +102,7 @@ func TestExecuteModified(t *testing.T) {
 	// Create instances of stubbed dependencies.
 	cfnMapper := new(testCfnMapper)
 	resourceDescriber := new(testSGDescriber)
+	resourceBuilder := new(testResourceBuilder)
 
 	// Create an instance of the system under test.
 	updateStrategy := new(DefaultUpdateStrategy)
@@ -104,6 +116,7 @@ func TestExecuteModified(t *testing.T) {
 		"modified", // Stack Name
 		cfnMapper,
 		resourceDescriber,
+		resourceBuilder,
 	)
 
 	// Ensure that the method does not throw an error.
