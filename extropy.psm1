@@ -1,8 +1,8 @@
 #Get public and private function definition files.
-$Public = Get-ChildItem -Path $PSScriptRoot\Public\*.ps1 `
+$Public = Get-ChildItem -Path $PSScriptRoot\Functions\Public\*.ps1 `
                         -Exclude *.Tests.ps1 `
                         -ErrorAction SilentlyContinue
-$Private = Get-ChildItem -Path $PSScriptRoot\Private\*.ps1 `
+$Private = Get-ChildItem -Path $PSScriptRoot\Functions\Private\*.ps1 `
                          -Exclude *.Tests.ps1 `
                          -ErrorAction SilentlyContinue
 
