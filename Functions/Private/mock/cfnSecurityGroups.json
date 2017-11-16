@@ -1,0 +1,210 @@
+[
+    {
+        "Description":  null,
+        "LogicalResourceId":  "EFSSecurityGroup",
+        "PhysicalResourceId":  "sg-091c5161",
+        "ResourceStatus":  {
+                               "Value":  "CREATE_COMPLETE"
+                           },
+        "ResourceStatusReason":  null,
+        "ResourceType":  "AWS::EC2::SecurityGroup",
+        "StackId":  "arn:aws:cloudformation:us-east-2:000000000000:stack/securitygroups/d9527985-944f-4117-b86d-7e8986e2b458",
+        "StackName":  "securitygroups",
+        "Timestamp":  "\/Date(1510804197111)\/"
+    },
+    {
+        "Description":  null,
+        "LogicalResourceId":  "ElasticCacheMemcacheSecurityGroup",
+        "PhysicalResourceId":  "sg-c21e53aa",
+        "ResourceStatus":  {
+                               "Value":  "CREATE_COMPLETE"
+                           },
+        "ResourceStatusReason":  null,
+        "ResourceType":  "AWS::EC2::SecurityGroup",
+        "StackId":  "arn:aws:cloudformation:us-east-2:000000000000:stack/securitygroups/d9527985-944f-4117-b86d-7e8986e2b458",
+        "StackName":  "securitygroups",
+        "Timestamp":  "\/Date(1510804346910)\/"
+    },
+    {
+        "Description":  null,
+        "LogicalResourceId":  "ElasticCacheRedisSecurityGroup",
+        "PhysicalResourceId":  "sg-201b5648",
+        "ResourceStatus":  {
+                               "Value":  "CREATE_COMPLETE"
+                           },
+        "ResourceStatusReason":  null,
+        "ResourceType":  "AWS::EC2::SecurityGroup",
+        "StackId":  "arn:aws:cloudformation:us-east-2:000000000000:stack/securitygroups/d9527985-944f-4117-b86d-7e8986e2b458",
+        "StackName":  "securitygroups",
+        "Timestamp":  "\/Date(1510804205894)\/"
+    },
+    {
+        "Description":  null,
+        "LogicalResourceId":  "MSSQLSecurityGroup",
+        "PhysicalResourceId":  "sg-8e1f52e6",
+        "ResourceStatus":  {
+                               "Value":  "CREATE_COMPLETE"
+                           },
+        "ResourceStatusReason":  null,
+        "ResourceType":  "AWS::EC2::SecurityGroup",
+        "StackId":  "arn:aws:cloudformation:us-east-2:000000000000:stack/securitygroups/d9527985-944f-4117-b86d-7e8986e2b458",
+        "StackName":  "securitygroups",
+        "Timestamp":  "\/Date(1510804263338)\/"
+    },
+    {
+        "Description":  null,
+        "LogicalResourceId":  "MySQLSecurityGroup",
+        "PhysicalResourceId":  "sg-0519546d",
+        "ResourceStatus":  {
+                               "Value":  "CREATE_COMPLETE"
+                           },
+        "ResourceStatusReason":  null,
+        "ResourceType":  "AWS::EC2::SecurityGroup",
+        "StackId":  "arn:aws:cloudformation:us-east-2:000000000000:stack/securitygroups/d9527985-944f-4117-b86d-7e8986e2b458",
+        "StackName":  "securitygroups",
+        "Timestamp":  "\/Date(1510804481112)\/"
+    },
+    {
+        "Description":  null,
+        "LogicalResourceId":  "NFSSecurityGroup",
+        "PhysicalResourceId":  "sg-ca1d50a2",
+        "ResourceStatus":  {
+                               "Value":  "CREATE_COMPLETE"
+                           },
+        "ResourceStatusReason":  null,
+        "ResourceType":  "AWS::EC2::SecurityGroup",
+        "StackId":  "arn:aws:cloudformation:us-east-2:000000000000:stack/securitygroups/d9527985-944f-4117-b86d-7e8986e2b458",
+        "StackName":  "securitygroups",
+        "Timestamp":  "\/Date(1510804188719)\/"
+    },
+    {
+        "Description":  null,
+        "LogicalResourceId":  "OracleSecurityGroup",
+        "PhysicalResourceId":  "sg-ff195497",
+        "ResourceStatus":  {
+                               "Value":  "CREATE_COMPLETE"
+                           },
+        "ResourceStatusReason":  null,
+        "ResourceType":  "AWS::EC2::SecurityGroup",
+        "StackId":  "arn:aws:cloudformation:us-east-2:000000000000:stack/securitygroups/d9527985-944f-4117-b86d-7e8986e2b458",
+        "StackName":  "securitygroups",
+        "Timestamp":  "\/Date(1510804635988)\/"
+    },
+    {
+        "Description":  null,
+        "LogicalResourceId":  "PostgresSecurityGroup",
+        "PhysicalResourceId":  "sg-a91c51c1",
+        "ResourceStatus":  {
+                               "Value":  "CREATE_COMPLETE"
+                           },
+        "ResourceStatusReason":  null,
+        "ResourceType":  "AWS::EC2::SecurityGroup",
+        "StackId":  "arn:aws:cloudformation:us-east-2:000000000000:stack/securitygroups/d9527985-944f-4117-b86d-7e8986e2b458",
+        "StackName":  "securitygroups",
+        "Timestamp":  "\/Date(1510804219455)\/"
+    },
+    {
+        "Description":  null,
+        "LogicalResourceId":  "PrivateECSSecurityGroup",
+        "PhysicalResourceId":  "sg-dc1b56b4",
+        "ResourceStatus":  {
+                               "Value":  "CREATE_COMPLETE"
+                           },
+        "ResourceStatusReason":  null,
+        "ResourceType":  "AWS::EC2::SecurityGroup",
+        "StackId":  "arn:aws:cloudformation:us-east-2:000000000000:stack/securitygroups/d9527985-944f-4117-b86d-7e8986e2b458",
+        "StackName":  "securitygroups",
+        "Timestamp":  "\/Date(1510804387938)\/"
+    },
+    {
+        "Description":  null,
+        "LogicalResourceId":  "PrivateRDPSecurityGroup",
+        "PhysicalResourceId":  "sg-b91954d1",
+        "ResourceStatus":  {
+                               "Value":  "CREATE_COMPLETE"
+                           },
+        "ResourceStatusReason":  null,
+        "ResourceType":  "AWS::EC2::SecurityGroup",
+        "StackId":  "arn:aws:cloudformation:us-east-2:000000000000:stack/securitygroups/d9527985-944f-4117-b86d-7e8986e2b458",
+        "StackName":  "securitygroups",
+        "Timestamp":  "\/Date(1510804371584)\/"
+    },
+    {
+        "Description":  null,
+        "LogicalResourceId":  "PrivateSSHSecurityGroup",
+        "PhysicalResourceId":  "sg-961f52fe",
+        "ResourceStatus":  {
+                               "Value":  "CREATE_COMPLETE"
+                           },
+        "ResourceStatusReason":  null,
+        "ResourceType":  "AWS::EC2::SecurityGroup",
+        "StackId":  "arn:aws:cloudformation:us-east-2:000000000000:stack/securitygroups/d9527985-944f-4117-b86d-7e8986e2b458",
+        "StackName":  "securitygroups",
+        "Timestamp":  "\/Date(1510804320276)\/"
+    },
+    {
+        "Description":  null,
+        "LogicalResourceId":  "PrivateWebSecurityGroup",
+        "PhysicalResourceId":  "sg-a11e53c9",
+        "ResourceStatus":  {
+                               "Value":  "CREATE_COMPLETE"
+                           },
+        "ResourceStatusReason":  null,
+        "ResourceType":  "AWS::EC2::SecurityGroup",
+        "StackId":  "arn:aws:cloudformation:us-east-2:000000000000:stack/securitygroups/d9527985-944f-4117-b86d-7e8986e2b458",
+        "StackName":  "securitygroups",
+        "Timestamp":  "\/Date(1510804494277)\/"
+    },
+    {
+        "Description":  null,
+        "LogicalResourceId":  "PublicRDPSecurityGroup",
+        "PhysicalResourceId":  "sg-6a1c5102",
+        "ResourceStatus":  {
+                               "Value":  "CREATE_COMPLETE"
+                           },
+        "ResourceStatusReason":  null,
+        "ResourceType":  "AWS::EC2::SecurityGroup",
+        "StackId":  "arn:aws:cloudformation:us-east-2:000000000000:stack/securitygroups/d9527985-944f-4117-b86d-7e8986e2b458",
+        "StackName":  "securitygroups",
+        "Timestamp":  "\/Date(1510804184394)\/"
+    },
+    {
+        "Description":  null,
+        "LogicalResourceId":  "PublicSSHSecurityGroup",
+        "PhysicalResourceId":  "sg-d91e53b1",
+        "ResourceStatus":  {
+                               "Value":  "CREATE_COMPLETE"
+                           },
+        "ResourceStatusReason":  null,
+        "ResourceType":  "AWS::EC2::SecurityGroup",
+        "StackId":  "arn:aws:cloudformation:us-east-2:000000000000:stack/securitygroups/d9527985-944f-4117-b86d-7e8986e2b458",
+        "StackName":  "securitygroups",
+        "Timestamp":  "\/Date(1510804280250)\/"
+    },
+    {
+        "Description":  null,
+        "LogicalResourceId":  "PublicWebSecurityGroup",
+        "PhysicalResourceId":  "sg-9b1f52f3",
+        "ResourceStatus":  {
+                               "Value":  "CREATE_COMPLETE"
+                           },
+        "ResourceStatusReason":  null,
+        "ResourceType":  "AWS::EC2::SecurityGroup",
+        "StackId":  "arn:aws:cloudformation:us-east-2:000000000000:stack/securitygroups/d9527985-944f-4117-b86d-7e8986e2b458",
+        "StackName":  "securitygroups",
+        "Timestamp":  "\/Date(1510804277130)\/"
+    },
+    {
+        "Description":  null,
+        "LogicalResourceId":  "RedshiftSecurityGroup",
+        "PhysicalResourceId":  "sg-a81954c0",
+        "ResourceStatus":  {
+                               "Value":  "CREATE_COMPLETE"
+                           },
+        "ResourceStatusReason":  null,
+        "ResourceType":  "AWS::EC2::SecurityGroup",
+        "StackId":  "arn:aws:cloudformation:us-east-2:000000000000:stack/securitygroups/d9527985-944f-4117-b86d-7e8986e2b458",
+        "StackName":  "securitygroups",
+        "Timestamp":  "\/Date(1510804179484)\/"
+    }
+]
