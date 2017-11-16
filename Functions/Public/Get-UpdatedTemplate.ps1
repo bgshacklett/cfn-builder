@@ -1,9 +1,8 @@
-function Update-SecurityGroupTemplate
+function Get-UpdatedTemplate
 {
   [CmdletBinding()]
   Param
   (
-    $Path,
     $Region,
     $StackName
   )
@@ -12,7 +11,8 @@ function Update-SecurityGroupTemplate
 
   Process
   {
-    $template  = Get-Content -Path $Path | ConvertFrom-Json
+    $template  = Get-CfnTemplate -Region $Region -StackName $StackName `
+                 | ConvertFrom-Json
 
     $resources = Get-ManagedSecurityGroup -Region $Region -StackName $StackName `
     | ForEach-Object {
@@ -26,9 +26,7 @@ function Update-SecurityGroupTemplate
       | Add-Member -Name $key -Value $resources.$key -MemberType NoteProperty
     }
 
-    $template `
-    | ConvertTo-Json -Depth 99 `
-    | Out-File -Encoding utf8 -FilePath $Path
+    $template | ConvertTo-Json -Depth 99
   }
 
   End {}
