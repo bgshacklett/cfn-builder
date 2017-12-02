@@ -14,11 +14,18 @@ function Get-UpdatedTemplate
     $template  = Get-CfnTemplate -Region $Region -StackName $StackName `
                  | ConvertFrom-Json
 
-    $resources = Get-ManagedSecurityGroup -Region $Region -StackName $StackName `
+    $sgsToProcess = Get-ManagedSecurityGroup -Region $Region -StackName $StackName `
     | ForEach-Object {
       New-CfnSecurityGroup -SecurityGroup $_ -StackName $StackName -Region $Region
     }
 
+    $optimizedSGs = $sgsToProcess | Optimize-SecurityGroupReference
+
+    # More resources will be added here later, hence this intermediary var 
+    $resources = $optimizedSGs
+
+    # Loop through each of the updated resources and remove the matching
+    # resources from the template. Then, add the updated resources.
     foreach ($key in $resources.keys)
     {
       $template.Resources.PSobject.Properties.Remove($key)

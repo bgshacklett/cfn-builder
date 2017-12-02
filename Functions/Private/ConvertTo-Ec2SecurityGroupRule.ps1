@@ -74,17 +74,12 @@ Received the following input...
     If ($ruleType -eq 'UserIdGroupPair')
     {
       Write-Verbose 'The peer is a reference to another Security Group'
-      # If this is a Security Group in the same Template, we'll want to
-      # replace the hard coded ID with a "Ref" function to the logical ID of
-      # the security group. If not, we can leave the ID in place.
+      # If this is a Security Group in the same Template, we'll set the
+      # GroupId as the peer. We'll update references later so we can account
+      # for circular dependencies and break out SecurityGroup[Ingress|Egress]
+      # resources..
 
-      $uidGroupPairConversionArgs =
-      @{
-        'GroupId'   = $InputObject.GroupId
-        'Region'    = $Region
-        'StackName' = $StackName
-      }
-      $peer = ConvertFrom-UserIdGroupPair @uidGroupPairConversionArgs
+      $peer = $InputObject.GroupId
     }
     else
     {
