@@ -17,11 +17,13 @@ function Optimize-SecurityGroupReference
 
   Process
   {
-    $sgIngress       = $InputObject['Properties']['SecurityGroupIngress']
-    $sgEgress        = $InputObject['Properties']['SecurityGroupEgress']
-    $sgTags          = $InputObject['Properties']['Tags']
-    $sgDescription   = $InputObject['Properties']['GroupDescription']
-    $sgVpcId         = $InputObject['Properties']['VpcId']
+    Write-Verbose ('InputObject: ' + $InputObject)
+
+    $sgIngress     = $InputObject.Value['Properties']['SecurityGroupIngress']
+    $sgEgress      = $InputObject.Value['Properties']['SecurityGroupEgress']
+    $sgTags        = $InputObject.Value['Properties']['Tags']
+    $sgDescription = $InputObject.Value['Properties']['GroupDescription']
+    $sgVpcId       = $InputObject.Value['Properties']['VpcId']
 
     $sgContext =
     @{
@@ -47,14 +49,15 @@ function Optimize-SecurityGroupReference
                         )[0] 
 
     @{
-      'Type'       = 'AWS::EC2::SecurityGroup'
-      'Properties' =
-      @{
-        'SecurityGroupIngress' = $optimizedIngress
-        'SecurityGroupEgress'  = $optimizedEgress
-        'Tags'                 = $InputObject['Properties']['Tags']
-        'GroupDescription'     = $InputObject['Properties']['GroupDescription']
-        'VpcId'                = $optimizedVpcId
+      $InputObject.Key = @{
+        'Type'       = 'AWS::EC2::SecurityGroup'
+        'Properties' = @{
+          'SecurityGroupIngress' = $optimizedIngress
+          'SecurityGroupEgress'  = $optimizedEgress
+          'Tags'                 = $sgTags
+          'GroupDescription'     = $sgDescription
+          'VpcId'                = $optimizedVpcId
+        }
       }
     }
   }

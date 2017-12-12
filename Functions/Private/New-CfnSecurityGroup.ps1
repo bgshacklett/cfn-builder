@@ -3,7 +3,8 @@ function New-CfnSecurityGroup
   [CmdletBinding()]
   Param
   (
-    $SecurityGroup,
+    [Parameter(Mandatory=$true,ValueFromPipeline=$true)]
+    $InputObject,
     $StackName,
 
     [Parameter(Mandatory=$true)]
@@ -15,14 +16,14 @@ function New-CfnSecurityGroup
 
   Process
   {
-    Write-Verbose ('Creating a New CfnSecurityGroup object from security group "{0}" associated with Cfn stack "{1}".' -f $SecurityGroup, $StackName)
+    Write-Verbose ('Creating a New CfnSecurityGroup object from security group "{0}" associated with Cfn stack "{1}".' -f $InputObject, $StackName)
 
     $securityGroupIngress =
-      $SecurityGroup.IpPermissions `
+      $InputObject.IpPermissions `
       | ConvertTo-SecurityGroupRuleSet -Region $Region -FlowDirection 'Ingress'
 
     $securityGroupEgress  =
-      $SecurityGroup.IpPermissionsEgress `
+      $InputObject.IpPermissionsEgress `
       | ConvertTo-SecurityGroupRuleSet -Region $Region -FlowDirection 'Egress'
 
 
@@ -30,24 +31,24 @@ function New-CfnSecurityGroup
     @{
       'Region'             = $Region
       'StackName'          = $StackName
-      'PhysicalResourceId' = $SecurityGroup.GroupId
+      'PhysicalResourceId' = $InputObject.GroupId
     }
     $sgLogicalId = Get-CfnLogicalResourceId @logicalQueryParams
 
     Write-Debug "SG Logical ID: $sgLogicalId"
 
-    $sgTags = $SecurityGroup.Tags | Where-Object { $_.key -notlike 'aws:*' }
+    $sgTags = $InputObject.Tags | Where-Object { $_.key -notlike 'aws:*' }
 
     @{
-      $sgLogicalId = [PSCustomObject]@{
+      $sgLogicalId = @{
         'Type'       = 'AWS::EC2::SecurityGroup'
-        'Properties' = [PSCustomObject]@{
-          'GroupName'            = $SecurityGroup.GroupName
-          'GroupDescription'     = $SecurityGroup.Description
+        'Properties' = @{
+          'GroupName'            = $InputObject.GroupName
+          'GroupDescription'     = $InputObject.Description
           'SecurityGroupIngress' = @($securityGroupIngress)
           'SecurityGroupEgress'  = @($securityGroupEgress)
           'Tags'                 = $sgTags
-          'VpcId'                = $SecurityGroup.VpcId
+          'VpcId'                = $InputObject.VpcId
         }
       }
     }

@@ -23,8 +23,9 @@ Describe 'Optimize-SecurityGroupReference' {
 
   $testArgs =
   @{
-    'Region'    = 'us-east-1'
-    'StackName' = 'foo'
+    'Region'      = 'us-east-1'
+    'StackName'   = 'foo'
+    'ErrorAction' = 'Stop'
   }
 
   $refList =
@@ -32,59 +33,63 @@ Describe 'Optimize-SecurityGroupReference' {
     'vpc-12345678' = 'VpcId'
   }
 
-  $mockSecurityGroup =
+  $mockResourceHash =
   @{
-    'Type'       = 'AWS::EC2::SecurityGroup'
-    'Properties' =
-    @{
-      'SecurityGroupIngress' = @(
-        @{
-          'ToPort'                = 22
-          'IpProtocol'            = 'tcp'
-          'SourceSecurityGroupId' = 'sg-12345678'
-          'FromPort'              = 22
-        },
-        @{
-          'ToPort'                = 22
-          'IpProtocol'            = 'tcp'
-          'SourceSecurityGroupId' = 'sg-12345677'
-          'FromPort'              = 22
-        },
-        @{
-          'ToPort'                = 22
-          'IpProtocol'            = 'tcp'
-          'SourceSecurityGroupId' = 'sg-12345676'
-          'FromPort'              = 22
-        }
-      )
-      'SecurityGroupEgress' = @(
-        @{
-          'ToPort'                     = 22
-          'IpProtocol'                 = 'tcp'
-          'DestinationSecurityGroupId' = 'sg-12345675'
-          'FromPort'                   = 22
-        },
-        @{
-          'ToPort'                     = 22
-          'IpProtocol'                 = 'tcp'
-          'DestinationSecurityGroupId' = 'sg-12345674'
-          'FromPort'                   = 22
-        },
-        @{
-          'ToPort'                     = 22
-          'IpProtocol'                 = 'tcp'
-          'DestinationSecurityGroupId' = 'sg-12345673'
-          'FromPort'                   = 22
-        }
-      )
-      'VpcId'                = 'vpc-12345678'
-      'Tags'                 = @(
-                                 @{ 'Key' = 'foo'; 'Value' = 'bar' }
-                                 @{ 'Key' = 'baz'; 'Value' = 'qux' }
-                               )
-      'GroupDescription'     = 'My super fantastic security group'
+    'MockSecurityGroup' = @{
+      'Type'       = 'AWS::EC2::SecurityGroup'
+      'Properties' =
+      @{
+        'SecurityGroupIngress' = @(
+          @{
+            'ToPort'                = 22
+            'IpProtocol'            = 'tcp'
+            'SourceSecurityGroupId' = 'sg-12345678'
+            'FromPort'              = 22
+          },
+          @{
+            'ToPort'                = 22
+            'IpProtocol'            = 'tcp'
+            'SourceSecurityGroupId' = 'sg-12345677'
+            'FromPort'              = 22
+          },
+          @{
+            'ToPort'                = 22
+            'IpProtocol'            = 'tcp'
+            'SourceSecurityGroupId' = 'sg-12345676'
+            'FromPort'              = 22
+          }
+        )
+        'SecurityGroupEgress' = @(
+          @{
+            'ToPort'                     = 22
+            'IpProtocol'                 = 'tcp'
+            'DestinationSecurityGroupId' = 'sg-12345675'
+            'FromPort'                   = 22
+          },
+          @{
+            'ToPort'                     = 22
+            'IpProtocol'                 = 'tcp'
+            'DestinationSecurityGroupId' = 'sg-12345674'
+            'FromPort'                   = 22
+          },
+          @{
+            'ToPort'                     = 22
+            'IpProtocol'                 = 'tcp'
+            'DestinationSecurityGroupId' = 'sg-12345673'
+            'FromPort'                   = 22
+          }
+        )
+        'VpcId'                = 'vpc-12345678'
+        'Tags'                 = @(
+                                   @{ 'Key' = 'foo'; 'Value' = 'bar' }
+                                   @{ 'Key' = 'baz'; 'Value' = 'qux' }
+                                 )
+        'GroupDescription'     = 'My super fantastic security group'
+      }
     }
   }
+
+  $inputObject = $mockResourceHash.GetEnumerator()
 
 
   Mock Optimize-SecurityGroupRule {
@@ -103,33 +108,45 @@ Describe 'Optimize-SecurityGroupReference' {
 
   It 'Returns the Same Number of Rules as it Receives' {
 
-    $result = $mockSecurityGroup | Optimize-SecurityGroupReference @testArgs
+    $result = $inputObject | Optimize-SecurityGroupReference @testArgs
 
-    $result['SecurityGroupIngress'].Length `
-    | Should -Be $mockSecurityGroup['SecurityGroupIngress'].Length
+    (
+      $result.GetEnumerator() | Select-Object -ExpandProperty Value
+    )['Properties']['SecurityGroupIngress'].Length `
+    | Should -Be $mockResourceHash['MockSecurityGroup']['Properties']['SecurityGroupIngress'].Length
 
-    $result['SecurityGroupEgress'].Length `
-    | Should -Be $mockSecurityGroup['SecurityGroupEgress'].Length
+    (
+      $result.GetEnumerator() | Select-Object -ExpandProperty Value
+    )['Properties']['SecurityGroupEgress'].Length `
+    | Should -Be $mockResourceHash['MockSecurityGroup']['Properties']['SecurityGroupEgress'].Length
   }
 
 
   It 'Retains Tags' {
 
     $expected = @(@{ 'Key' = 'foo'; 'Value' = 'bar' })
-  
-    $actual =
+
+    $simpleResourceHash =
     @{
-      'Type'       = 'AWS::EC2::SecurityGroup'
-      'Properties' =
-      @{
-        'Tags' = @(@{ 'Key' = 'foo'; 'Value' = 'bar' })
-      }
-    } `
-    | Optimize-SecurityGroupReference -Region us-east-1 -StackName foo `
-    | ForEach-Object { [PSCustomObject]$_ } `
-    | Select-Object -ExpandProperty Properties `
-    | ForEach-Object { [PSCustomObject]$_ } `
-    | Select-Object -ExpandProperty Tags
+      'MockSecurityGroup' = @{
+        'Type'       = 'AWS::EC2::SecurityGroup'
+        'Properties' =
+        @{
+          'Tags' = @(@{ 'Key' = 'foo'; 'Value' = 'bar' })
+        }
+      } `
+    }
+
+    $inputObject = $simpleResourceHash.GetEnumerator()
+
+    $actual = $inputObject `
+              | Optimize-SecurityGroupReference @testArgs `
+              | ForEach-Object { [PSCustomObject]$_ } `
+              | Select-Object -ExpandProperty MockSecurityGroup `
+              | ForEach-Object { [PSCustomObject]$_ } `
+              | Select-Object -ExpandProperty Properties `
+              | ForEach-Object { [PSCustomObject]$_ } `
+              | Select-Object -ExpandProperty Tags
 
     $actual['Key']   | Should Be 'foo'
     $actual['Value'] | Should Be 'bar'
@@ -138,42 +155,79 @@ Describe 'Optimize-SecurityGroupReference' {
 
   It 'Retains the Group Description' {
 
+    $simpleResourceHash =
     @{
-      'Type'       = 'AWS::EC2::SecurityGroup'
-      'Properties' =
-      @{
-        'GroupDescription' = 'My Super Awesome Security Group'
-      }
-    } `
-    | Optimize-SecurityGroupReference -Region us-east-1 -StackName foo `
-    | ForEach-Object { [PSCustomObject]$_ } `
-    | Select-Object -ExpandProperty Properties `
-    | ForEach-Object { [PSCustomObject]$_ } `
-    | Select-Object -ExpandProperty GroupDescription `
-    | Should Be 'My Super Awesome Security Group'
-  }
-
-  
-  Context 'SecurityGroupIngress is null' {
-
-    $simpleSecurityGroup =
-    @{
-      'Properties' =
-      @{
-        'SecurityGroupEgress' = @(
-          @{
-            'DestinationSecurityGroupId' = 'sg-12345678'
-          }
-        )
-        'VpcId' = 'vpc-12345678'
+      'MockSecurityGroup' = @{
+        'Type'       = 'AWS::EC2::SecurityGroup'
+        'Properties' =
+        @{
+          'GroupDescription' = 'My Super Awesome Security Group'
+        }
       }
     }
+
+    $inputObject = $simpleResourceHash.GetEnumerator()
+
+    $actual = $inputObject `
+              | Optimize-SecurityGroupReference @testArgs `
+              | ForEach-Object { [PSCustomObject]$_ } `
+              | Select-Object -ExpandProperty MockSecurityGroup `
+              | ForEach-Object { [PSCustomObject]$_ } `
+              | Select-Object -ExpandProperty Properties `
+              | ForEach-Object { [PSCustomObject]$_ } `
+              | Select-Object -ExpandProperty GroupDescription `
+              | Should Be 'My Super Awesome Security Group'
+  }
+
+
+  Context 'Tags are Null' {
+
+    $simpleResourceHash =
+    @{
+      'MockSecurityGroup' = @{
+        'Properties' = @{
+          'SecurityGroupEgress' = @(
+            @{ 'DestinationSecurityGroupId' = 'sg-12345678' }
+          )
+          'VpcId' = 'vpc-12345678'
+        }
+      }
+    }
+
+    $inputObject = $simpleResourceHash.GetEnumerator()
+
+    It 'Does not throw an error' {
+
+      {
+        $inputObject `
+        | Optimize-SecurityGroupReference @testArgs
+      } `
+      | Should Not Throw
+    }
+  }
+
+
+  Context 'SecurityGroupIngress is null' {
+
+    $simpleResourceHash =
+    @{
+      'MockSecurityGroup' = @{
+        'Properties' = @{
+          'SecurityGroupEgress' = @(
+            @{ 'DestinationSecurityGroupId' = 'sg-12345678' }
+          )
+          'VpcId' = 'vpc-12345678'
+        }
+      }
+    }
+
+    $inputObject = $simpleResourceHash.GetEnumerator()
 
 
     It 'Does not throw an error' {
 
       {
-        $simpleSecurityGroup `
+        $inputObject `
         | Optimize-SecurityGroupReference -Region us-east-1 -StackName foo
       } `
       | Should Not Throw
@@ -183,24 +237,25 @@ Describe 'Optimize-SecurityGroupReference' {
 
   Context 'SecurityGroupEgress is null' {
 
-    $simpleSecurityGroup =
+    $simpleResourceHash =
     @{
-      'Properties' =
-      @{
-        'SecurityGroupIngress' = @(
-          @{
-            'SourceSecurityGroupId' = 'sg-12345678'
-          }
-        )
-        'VpcId' = 'vpc-12345678'
+      'MockSecurityGroup' = @{
+        'Properties' = @{
+          'SecurityGroupIngress' = @(
+            @{ 'SourceSecurityGroupId' = 'sg-12345678' }
+          )
+          'VpcId' = 'vpc-12345678'
+        }
       }
     }
+
+    $inputObject = $simpleResourceHash.GetEnumerator()
 
 
     It 'Does not throw an error' {
 
       {
-        $simpleSecurityGroup `
+        $inputObject `
         | Optimize-SecurityGroupReference -Region us-east-1 -StackName foo
       } `
       | Should Not Throw
@@ -210,17 +265,26 @@ Describe 'Optimize-SecurityGroupReference' {
 
   Context 'Both SecurityGroupIngress & SecurityGroupEgress are null.' { 
 
-    $simpleSecurityGroup =
+    $simpleResourceHash =
     @{
-      'Properties' = @{ 'VpcId' = 'vpc-12345678' }
+      'MockSecurityGroup' = @{
+        'Properties' = @{
+          'SecurityGroupIngress' = @(
+            @{ 'SourceSecurityGroupId' = 'sg-12345678' }
+          )
+          'VpcId' = 'vpc-12345678'
+        }
+      }
     }
+
+    $inputObject = $simpleResourceHash.GetEnumerator()
 
 
     It 'Does not throw an error' {
 
       {
-        $simpleSecurityGroup `
-        | Optimize-SecurityGroupReference -Region us-east-1 -StackName foo
+        $inputObject `
+        | Optimize-SecurityGroupReference @testArgs
       } `
       | Should Not Throw
     }
@@ -231,10 +295,28 @@ Describe 'Optimize-SecurityGroupReference' {
 
     Mock Get-CfnReference { @{ 'Ref' = $refList[$PhysicalResourceId] } }
 
-    It 'Replaces the Vpc ID with a Ref' {
+    $simpleResourceHash =
+    @{
+      'MockSecurityGroup' = @{
+        'Properties' = @{
+          'SecurityGroupIngress' = @(
+            @{ 'SourceSecurityGroupId' = 'sg-12345678' }
+          )
+          'VpcId' = 'vpc-12345678'
+        }
+      }
+    }
 
+    $inputObject = $simpleResourceHash.GetEnumerator()
+
+
+    It 'Replaces the Vpc ID with a Ref' {
+      
       (
-        $mockSecurityGroup | Optimize-SecurityGroupReference @testArgs
+        (
+          $inputObject | Optimize-SecurityGroupReference @testArgs
+        ).GetEnumerator() `
+        | Select-Object -ExpandProperty Value
       )['Properties']['VpcId'] `
       | Should -BeLike @{ 'Ref' = $refList['vpc-12345678'] }
     }
@@ -243,21 +325,40 @@ Describe 'Optimize-SecurityGroupReference' {
 
   Context 'The VPC ID is _Not_ Available as a Parameter.' {
 
+    $simpleResourceHash =
+    @{
+      'MockSecurityGroup' = @{
+        'Properties' = @{
+          'SecurityGroupIngress' = @(
+            @{ 'SourceSecurityGroupId' = 'sg-12345678' }
+          )
+          'VpcId' = 'vpc-12345678'
+        }
+      }
+    }
+
+    $inputObject = $simpleResourceHash.GetEnumerator()
+
+
     It 'Passes the VpcId property back untouched.' {
 
       (
-        $mockSecurityGroup | Optimize-SecurityGroupReference @testArgs
+        (
+          $inputObject | Optimize-SecurityGroupReference @testArgs
+        ).GetEnumerator() `
+        | Select-Object -ExpandProperty Value
       )['Properties']['VpcId'] `
-      | Should -Be $mockSecurityGroup['Properties']['VpcId']
+      | Should -Be $mockResourceHash['MockSecurityGroup']['Properties']['VpcId']
     }
   }
+
 
   Context 'The Function Called Without the Region Parameter' {
 
     It 'Throws an Error' {
 
       {
-        $mockSecurityGroup `
+        $inputObject `
         | Optimize-SecurityGroupReference -StackName foo
       } `
       | Should Throw
@@ -270,7 +371,7 @@ Describe 'Optimize-SecurityGroupReference' {
     It 'Throws an Error' {
 
       {
-        $mockSecurityGroup `
+        $inputObject `
         | Optimize-SecurityGroupReference -Region foo
       } `
       | Should Throw
