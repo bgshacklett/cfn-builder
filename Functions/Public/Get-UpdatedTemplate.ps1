@@ -46,13 +46,12 @@ function Get-UpdatedTemplate
 
     # Get a hashtable of resources from the original template which do not
     # exist in the hashtable of optimized resources.
-    #$diffResources = $templateResources.psobject.Properties `
-    #                 | Where-Object { $_.Name -notin $optimizedResources.Keys } `
-    #                 | ForEach-Object { $res  = @{}                     } `
-    #                                  { $res += @{ $_.Name = $_.Value } }
-    #                                  { $res                            }
+    $diffResources = $origResources.psobject.Properties `
+                     | Where-Object { $_.Name -notin $optimizedResources.Keys } `
+                     | ForEach-Object { $res  = @{}                     } `
+                                      { $res += @{ $_.Name = $_.Value } } `
+                                      { $res                            }
 
-    $diffResources = @{}
 
     @{
       'AWSTemplateFormatVersion' = $origFormatVersion
