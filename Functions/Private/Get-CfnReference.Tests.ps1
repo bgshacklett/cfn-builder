@@ -1,10 +1,25 @@
-﻿$here = Split-Path -Parent $MyInvocation.MyCommand.Path
+﻿#region Test Environment Setup
+$here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path) -replace '\.Tests\.', '.'
+$deps = 'Get-CfnLogicalResourceId'
+
 . "$here\$sut"
 
+foreach ($dep in $deps)
+{
+  $depPath = $here `
+             | Split-Path -Parent `
+             | Get-ChildItem -Recurse -Include ($dep + '.ps1') `
+             | Select-Object -ExpandProperty FullName
+
+  . $depPath
+}
+#endregion
+
+
+#region Test Logic
 Describe 'Get-CfnReference' {
 
-  Function Get-CfnLogicalResourceId {}
   Mock Get-CfnLogicalResourceId { 'LogicalResourceId' }
 
   Context 'Looking for a valid resource' {
@@ -44,3 +59,4 @@ Describe 'Get-CfnReference' {
     }
   }
 }
+#endregion

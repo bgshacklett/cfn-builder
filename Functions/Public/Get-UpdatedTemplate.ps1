@@ -7,26 +7,63 @@ function Get-UpdatedTemplate
     $StackName
   )
 
-  Begin {}
+  Begin
+  {
+    $stackContext =
+    @{
+      'Region'    = $Region
+      'StackName' = $StackName
+    }
+
+    $origTemplate      = Get-CfnTemplate @stackContext | ConvertFrom-Json
+    $origFormatVersion = $origTemplate.AWSTemplateFormatVersion
+    $origDescription   = $origTemplate.Description
+    $origMetaData      = $origTemplate.MetaData
+    $origParameters    = $origTemplate.Parameters
+    $origMappings      = $origTemplate.Mappings
+    $origConditions    = $origTemplate.Conditions
+    $origTransform     = $origTemplate.Transform
+    $origResources     = $origTemplate.Resources
+    $origOutputs       = $origTemplate.Outputs
+  }
 
   Process
   {
-    $template  = Get-CfnTemplate -Region $Region -StackName $StackName `
-                 | ConvertFrom-Json
+    $optimizedSGs = (
+                      Get-ManagedSecurityGroup @stackContext `
+                      | New-CfnSecurityGroup @stackContext `
+                      | ForEach-Object { $res  = @{} } `
+                                       { $res += $_  } `
+                                       { $res        }
+                    ).GetEnumerator() `
+                    | Optimize-SecurityGroupReference @stackContext
 
-    $resources = Get-ManagedSecurityGroup -Region $Region -StackName $StackName `
-    | ForEach-Object {
-      New-CfnSecurityGroup -SecurityGroup $_ -StackName $StackName -Region $Region
+    # More resources will be added here later, hence this intermediary var 
+    # e.g.: $optimizedresources = $optimizedSGs + $optimizedX...
+    # ...where $optimized[X|Y|Z|...] is a hashtable of optimized resources
+    $optimizedResources = $optimizedSGs
+
+
+    # Get a hashtable of resources from the original template which do not
+    # exist in the hashtable of optimized resources.
+    $diffResources = $origResources.psobject.Properties `
+                     | Where-Object { $_.Name -notin $optimizedResources.Keys } `
+                     | ForEach-Object { $res  = @{}                     } `
+                                      { $res += @{ $_.Name = $_.Value } } `
+                                      { $res                            }
+
+
+    @{
+      'AWSTemplateFormatVersion' = $origFormatVersion
+      'Description'              = $origDescription
+      'MetaData'                 = $origMetaData
+      'Parameters'               = $origParameters
+      'Mappings'                 = $origMappings
+      'Conditions'               = $origConditions
+      'Transform'                = $origTransform
+      'Resources'                = $optimizedResources
+      'Outputs'                  = $origOutputs
     }
-
-    foreach ($key in $resources.keys)
-    {
-      $template.Resources.PSobject.Properties.Remove($key)
-      $template.Resources `
-      | Add-Member -Name $key -Value $resources.$key -MemberType NoteProperty
-    }
-
-    $template | ConvertTo-Json -Depth 99
   }
 
   End {}
