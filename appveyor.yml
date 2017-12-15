@@ -1,0 +1,18 @@
+# See http://www.appveyor.com/docs/appveyor-yml
+
+version: 0.1.1.{build}
+
+max_jobs: 1
+
+install:
+  - ps: Install-PackageProvider -Name NuGet -Force | Out-Null
+  - ps: Install-Module Pester -Repository PSGallery -Force
+
+build: false
+
+test_script:
+  - ps: powershell.exe -version 5.1
+                       -ExecutionPolicy Bypass
+                       -NoProfile
+                       -Command Invoke-Pester
+                       -OutputFormat NUnitXml
