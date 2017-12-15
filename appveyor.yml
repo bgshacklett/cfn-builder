@@ -14,4 +14,5 @@ test_script:
   - ps: powershell.exe -version 5
                        -ExecutionPolicy Bypass
                        -NoProfile
+                       -NonInteractive
                        -Command Invoke-Pester
