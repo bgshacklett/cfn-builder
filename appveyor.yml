@@ -15,4 +15,3 @@ test_script:
                        -ExecutionPolicy Bypass
                        -NoProfile
                        -Command Invoke-Pester
-                       -OutputFormat NUnitXml
