@@ -11,7 +11,7 @@ install:
 build: false
 
 test_script:
-  - ps: powershell.exe -version 5.1
+  - ps: powershell.exe -version 5
                        -ExecutionPolicy Bypass
                        -NoProfile
                        -Command Invoke-Pester
