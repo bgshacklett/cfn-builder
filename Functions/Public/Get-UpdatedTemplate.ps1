@@ -18,7 +18,7 @@ function Get-UpdatedTemplate
     $origTemplate      = Get-CfnTemplate @stackContext | ConvertFrom-Json
     $origFormatVersion = $origTemplate.AWSTemplateFormatVersion
     $origDescription   = $origTemplate.Description
-    $origMetaData      = $origTemplate.MetaData
+    $origMetadata      = $origTemplate.MetaData
     $origParameters    = $origTemplate.Parameters
     $origMappings      = $origTemplate.Mappings
     $origConditions    = $origTemplate.Conditions
@@ -29,6 +29,7 @@ function Get-UpdatedTemplate
 
   Process
   {
+    # TODO: This is a bit wonky; it should be doable with only one reduction.
     $optimizedSGs = (
                       Get-ManagedSecurityGroup @stackContext `
                       | New-CfnSecurityGroup @stackContext `
@@ -36,34 +37,53 @@ function Get-UpdatedTemplate
                                        { $res += $_  } `
                                        { $res        }
                     ).GetEnumerator() `
-                    | Optimize-SecurityGroupReference @stackContext
-
-    # More resources will be added here later, hence this intermediary var 
-    # e.g.: $optimizedresources = $optimizedSGs + $optimizedX...
-    # ...where $optimized[X|Y|Z|...] is a hashtable of optimized resources
-    $optimizedResources = $optimizedSGs
-
+                    | Optimize-SecurityGroupReference @stackContext `
+                    | ForEach-Object { $res  = @{} } `
+                                     { $res += $_  } `
+                                     { $res        }
 
     # Get a hashtable of resources from the original template which do not
     # exist in the hashtable of optimized resources.
     $diffResources = $origResources.psobject.Properties `
-                     | Where-Object { $_.Name -notin $optimizedResources.Keys } `
+                     | Where-Object { $_.Name -notin $optimizedSGs.Keys } `
                      | ForEach-Object { $res  = @{}                     } `
                                       { $res += @{ $_.Name = $_.Value } } `
                                       { $res                            }
 
 
+    # Build each section as a hashtable which is omitted if it's null.
     @{
       'AWSTemplateFormatVersion' = $origFormatVersion
+    },
+    @{
       'Description'              = $origDescription
-      'MetaData'                 = $origMetaData
+    },
+    @{
+      'Metadata'                 = $origMetadata
+    },
+    @{
       'Parameters'               = $origParameters
+    },
+    @{
       'Mappings'                 = $origMappings
+    },
+    @{
       'Conditions'               = $origConditions
+    },
+    @{
       'Transform'                = $origTransform
-      'Resources'                = $optimizedResources
+    },
+    @{
+      'Resources'                = $optimizedSGs +
+                                   $diffResources
+    },
+    @{
       'Outputs'                  = $origOutputs
-    }
+    } `
+    | Where-Object   { $_.Values } `
+    | ForEach-Object { $res  = @{} } `
+                     { $res += $_  } `
+                     { $res        }
   }
 
   End {}
