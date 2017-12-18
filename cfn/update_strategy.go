@@ -4,6 +4,7 @@ import (
 	"github.com/awslabs/goformation/cloudformation"
 	"github.com/bgshacklett/extropy/aws"
 	"github.com/yanatan16/itertools"
+	"fmt"
 )
 
 // TemplateUpdateStrategy defines an interface for functions which
@@ -34,51 +35,61 @@ func (r *DefaultUpdateStrategy) Execute(
 	resourceDescriber aws.ResourceDescriber,
 
 ) (*cloudformation.Template, error) {
-
+	var resourceBuilder ResourceBuilder
+	//type resource aws.Resource
+	resources := itertools.New(original.Resources)
+	type resourceType map[string]interface{}
 	// Get the Security Groups
 	supportedResources := <-(itertools.Filter(
-		func(resource) {
-			resource.Type == "AWS::EC2::SecurityGroup"
+		func(resource interface{}) bool {
+			mappedResource := resource.(map[string]interface{})
+			isType := mappedResource["Type"] == "AWS::EC2::SecurityGroup"
+			return isType
 		},
-		original.Resources,
+		resources,
 	))
 
 	// Get the unsupported resources in a separate list
 	unsupportedResources := <-(itertools.Filter(
-		func(resource) {
-			resource.Type != "AWS::EC2::SecurityGroup"
+		func(resource interface{}) bool {
+			mappedResource := resource.(map[string]interface{})
+			isType := mappedResource["Type"] != "AWS::EC2::SecurityGroup"
+			return isType
 		},
-		original.Resources,
+		resources,
 	))
+	fmt.Println(unsupportedResources)
 
 	// Get the physical ID for each Security Group
 	physicalSupportedResourceIDs := <-(itertools.Map(
-		func(item) {
-			result, _ := cfnMapper.MapResource(region, stackName, item)
+		func(item interface{}) interface{} {
+			result, _ := cfnMapper.MapResource(region, stackName, item.(string))
 			return result
 		},
-		supportedResources,
+		itertools.New(supportedResources),
 	))
 
 	// Get the current description of each supported resource by its Physical ID
 	physicalResourceDescriptions := <-(itertools.Map(
-		func(item) {
-			result, _ := resourceDescriber.DescribeResource(item)
+		func(item interface{}) interface{} {
+			result := resourceDescriber.DescribeResource(item.(string))
 			return result
 		},
-		physicalSupportedResourceIDs,
+		itertools.New(physicalSupportedResourceIDs),
 	))
 
 	// Translate the physical description into CloudFormation Resources
 	updatedResources := <-(itertools.Map(
-		func(item) {
+		func(item interface{}) interface{} {
 			result, _ := resourceBuilder.Build(item)
 			return result
 		},
-		physicalResourceDescriptions,
+		itertools.New(physicalResourceDescriptions),
 	))
+	fmt.Println(updatedResources)
 
 	updatedTemplate := cloudformation.NewTemplate()
+	fmt.Println(updatedTemplate)
 
 	return original, nil
 }

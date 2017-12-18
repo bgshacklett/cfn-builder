@@ -6,5 +6,5 @@ import (
 
 // A ResourceBuilder builds CloudFormation Resources
 type ResourceBuilder interface {
-	Build(aws.Resource) (Resource, error)
+	Build(aws.Resource) (aws.Resource, error)
 }

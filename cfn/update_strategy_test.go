@@ -72,13 +72,13 @@ func (r *testSGDescriber) DescribeResource(
 
 type testResourceBuilder struct{}
 
-func (r *testResourceBuilder) Build(physicalResource) (Resource, error) {
+func (r *testResourceBuilder) Build(physicalResource) (aws.Resource, error) {
 
 	// Get a mock Resource object based on the AWS resource returned above
 	cfnResource := new(cloudformation.AWSEC2SecurityGroup)
 
 	//
-
+	return cfnResource, nil
 }
 
 func TestExecuteModified(t *testing.T) {
