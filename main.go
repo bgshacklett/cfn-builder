@@ -5,6 +5,7 @@ import (
 	"github.com/bgshacklett/extropy/ui/command"
 	"github.com/urfave/cli"
 	"os"
+	"fmt"
 )
 
 func main() {
@@ -42,14 +43,16 @@ func main() {
 			},
 
 			Action: func(c *cli.Context) error {
-
-				return command.GetUpdatedTemplate(
+				if err := command.GetUpdatedTemplate(
 					c.String("path"),
 					c.String("stack-name"),
 					c.String("region"),
 					os.Stdout,
 					cfn.DefaultUpdateStrategy,
-				)
+				); err != nil {
+					fmt.Println(err)
+				}
+				return nil
 			},
 		},
 	}
