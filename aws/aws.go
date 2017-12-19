@@ -3,3 +3,7 @@ package aws
 
 // A Resource represents a Physical Resource in AWS.
 type Resource interface{}
+
+
+
+
