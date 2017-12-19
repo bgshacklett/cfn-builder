@@ -9,7 +9,16 @@ import (
 
 // TemplateUpdateStrategy defines an interface for functions which
 // intend to update CloudFormation templates from a live environment.
+//type TemplateUpdateStrategy func(interface{}) (*cloudformation.Template, error)
+type TemplateUpdateStrategy func(
+	path string,
+	stackName string,
+	region string,
+	original *cloudformation.Template,
+) (interface{}, error)
+/*
 type TemplateUpdateStrategy interface {
+
 	Execute(
 
 		region string,
@@ -20,25 +29,33 @@ type TemplateUpdateStrategy interface {
 		resourceBuilder ResourceBuilder,
 
 	) (*cloudformation.Template, error)
-}
 
+}
+*/
 // DefaultUpdateStrategy currently returns a bogus string on execution.
-type DefaultUpdateStrategy struct{}
+//type DefaultUpdateStrategy struct{}
 
 // Execute implements the Execute
-func (r *DefaultUpdateStrategy) Execute(
+func DefaultUpdateStrategy(
 
+	path string,
+	stackName string,
 	region string,
 	original *cloudformation.Template,
-	stackName string,
-	cfnMapper aws.CfnMapper,
-	resourceDescriber aws.ResourceDescriber,
 
-) (*cloudformation.Template, error) {
+	//cfnMapper aws.CfnMapper,
+	//resourceDescriber aws.ResourceDescriber,
+
+) (interface{}, error) {
+
 	var resourceBuilder ResourceBuilder
+	var cfnMapper aws.CfnMapper
+	var resourceDescriber aws.ResourceDescriber
+
 	//type resource aws.Resource
 	resources := itertools.New(original.Resources)
 	type resourceType map[string]interface{}
+
 	// Get the Security Groups
 	supportedResources := <-(itertools.Filter(
 		func(resource interface{}) bool {
