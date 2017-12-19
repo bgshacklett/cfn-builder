@@ -9,14 +9,16 @@ type SG struct{
 	OwnerId string
 	Tags []Tags
 	VpcId string
+	PrefixListIds string
 }
 
 type IpPermissions struct {
-	FromPort uint16
-	ToPort uint16
+	FromPort int
+	ToPort int
 	IpProtocol string
 	UserIdGroupPairs []UserIdGroupPairs
 	IpRanges []IpRanges
+	Ipv6Ranges []Ipv6Ranges
 }
 
 type UserIdGroupPairs struct {
@@ -25,8 +27,8 @@ type UserIdGroupPairs struct {
 }
 
 type IpPermissionsEgress struct {
-	FromPort uint16
-	ToPort uint16
+	FromPort int
+	ToPort int
 	IpProtocol string
 	UserIdGroupPairs []UserIdGroupPairs
 	IpRanges []IpRanges
@@ -34,4 +36,8 @@ type IpPermissionsEgress struct {
 
 type IpRanges struct {
 	CidrIp string
+}
+
+type Ipv6Ranges struct {
+	CidrIpv6 string
 }

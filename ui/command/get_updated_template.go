@@ -66,15 +66,7 @@ func GetUpdatedTemplate(
 	}
 
 	// TODO: MOVE LATER - Iterate over each resource resource.Description will hold the descirption
-	for i,_ := range supportedResources {
-		var resource aws.ResourceDescriber
-		resource.DescribeResource(supportedResources[i], region)
-
-		cfn.SGBuilder(resource, supportedResources[i])
-		break
-		//fmt.Println(resource.Description)
-	}
-
+	cfn.SGBuilder(supportedResources, region)
 
 	//res, err := originalTemplateBody.YAML()
 

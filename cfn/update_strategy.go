@@ -50,7 +50,7 @@ func DefaultUpdateStrategy(
 
 	var resourceBuilder ResourceBuilder
 	var cfnMapper aws.CfnMapper
-	var resourceDescriber aws.ResourceDescriber
+	//var resourceDescriber aws.ResourceDescriber
 
 	//type resource aws.Resource
 	resources := itertools.New(original.Resources)
@@ -86,11 +86,12 @@ func DefaultUpdateStrategy(
 		itertools.New(supportedResources),
 	))
 
+	// todo: FIX THIS ONE LATER
 	// Get the current description of each supported resource by its Physical ID
 	physicalResourceDescriptions := <-(itertools.Map(
 		func(item interface{}) interface{} {
-			result := resourceDescriber.DescribeResource(item.(string))
-			return result
+			//result := resourceDescriber.DescribeResource(item.(string))
+			return true
 		},
 		itertools.New(physicalSupportedResourceIDs),
 	))
