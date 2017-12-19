@@ -2,14 +2,14 @@ package command
 
 import (
 	"github.com/bgshacklett/extropy/cfn"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/aws"
-	//awsHelper "github.com/bgshacklett/extropy/aws"
 	"io"
-	awsCloudformation "github.com/aws/aws-sdk-go/service/cloudformation"
-	"fmt"
+
+	"github.com/bgshacklett/extropy/aws"
+	"github.com/yanatan16/itertools"
+	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"encoding/json"
-	"github.com/awslabs/goformation/cloudformation"
+	"github.com/bgshacklett/extropy/frames"
+
 )
 
 // GetUpdatedTemplate handles the get-updated-template command.
@@ -22,36 +22,63 @@ func GetUpdatedTemplate(
 	updateStrategy cfn.TemplateUpdateStrategy, // Function to update the template
 
 ) error {
+	supportedTypes := []string{
+		"AWS::EC2::SecurityGroup",
+	}
 
-	//goCloudformatoin.ParseJSON
-
-	// Create AWS session with region
-	awsSession := session.Must(session.NewSession(&aws.Config{
-		Region: aws.String(region),
-	}))
-
-	// Create CFN service
-	cfnService := awsCloudformation.New(awsSession)
-
-	// Get CFN template output
-	templateOutput, err := cfnService.GetTemplate(&awsCloudformation.GetTemplateInput{
-		StackName: aws.String(stackName),
-	})
+	/*
+	// get template for stack
+	originalTemplateBody, err := aws.GetGoformationTemplate(region, stackName)
 	if err != nil {
 		return err
 	}
-	// Create byte array out of template string
-	originalTemplateBytes := []byte(*templateOutput.TemplateBody)
-
-	// Unmarshal template into goformation.template type
-	originalTemplateBody := &cloudformation.Template{}
-	if err := json.Unmarshal(originalTemplateBytes, originalTemplateBody); err != nil {
+	*/
+	// get all resources for stack
+	stackResourcesOuput, err := aws.GetStackResources(region, stackName)
+	if err != nil {
 		return err
 	}
 
-	res, err := originalTemplateBody.YAML()
+	// TODO: MOVE LATER - get list of resources we support out of stack resources
+	var supportedResources frames.SupportedResources
+	for _, resource := range stackResourcesOuput.StackResources {
+		resourceIter := itertools.New(resource)
+		resourceSupported := <-(itertools.Filter(
+			func(resource interface{}) bool {
+				mappedResource := resource.(*cloudformation.StackResource)
+				for t := range supportedTypes {
+					if *mappedResource.ResourceType == supportedTypes[t] {
+						return true
+					}
+				}
+				return false
+			},
+			resourceIter,
+		))
+		raw,err := json.Marshal(resourceSupported)
+		if err != nil {
+			return err
+		}
+		res := &frames.SupportedResource{}
+		json.Unmarshal(raw, res)
 
-	_, err = fmt.Fprint(outputWriter, string(res))
+		supportedResources = append(supportedResources, *res)
+	}
+
+	// TODO: MOVE LATER - Iterate over each resource resource.Description will hold the descirption
+	for i,_ := range supportedResources {
+		var resource aws.ResourceDescriber
+		resource.DescribeResource(supportedResources[i], region)
+
+		cfn.SGBuilder(resource, supportedResources[i])
+		break
+		//fmt.Println(resource.Description)
+	}
+
+
+	//res, err := originalTemplateBody.YAML()
+
+	//_, err = fmt.Fprint(outputWriter, string(res))
 	//
 
 	/* TODO: Figure out update later
