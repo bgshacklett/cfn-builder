@@ -7,15 +7,21 @@ import (
 	"io/ioutil"
 	"strings"
 	"testing"
+	"github.com/awslabs/goformation/cloudformation"
 )
 
-type testUpdateStrategy struct{}
+type testUpdateStrategy func(
+	path string,
+	stackName string,
+	region string,
+) (interface{}, error)
 
-func (r *testUpdateStrategy) Execute(
+func (r testUpdateStrategy) Execute(
 
 	path string,
 	stackName string,
 	region string,
+	original *cloudformation.Template,
 
 ) (interface{}, error) {
 
@@ -50,13 +56,20 @@ func TestGetUpdatedTemplate(t *testing.T) {
 			fmt.Sprintf("%s, %s, %s", tc.path, tc.stackName, tc.region),
 			func(t *testing.T) {
 				var actual string
-
+				updateStrategy := func(
+					path string,
+					stackName string,
+					region string,
+					original *cloudformation.Template,
+				) (interface{}, error) {
+					return strings.Join([]string{path, stackName, region}, ","), nil
+				}
 				err := GetUpdatedTemplate(
 					tc.path,
 					tc.stackName,
 					tc.region,
 					testBuffer,
-					new(testUpdateStrategy),
+					updateStrategy,
 				)
 				assert.NoError(t, err, "The function does not throw an error.")
 

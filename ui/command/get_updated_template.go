@@ -1,7 +1,6 @@
 package command
 
 import (
-	"fmt"
 	"github.com/bgshacklett/extropy/cfn"
 	"io"
 )
@@ -17,11 +16,15 @@ func GetUpdatedTemplate(
 
 ) error {
 
+	// bria0265-securitygroups
+
+	/* TODO: Figure out update later
 	result, err := updateStrategy.Execute(path, stackName, region)
 	if err != nil {
 		return err
 	}
 
 	_, err = fmt.Fprint(outputWriter, result)
-	return err
+	*/
+	return nil
 }

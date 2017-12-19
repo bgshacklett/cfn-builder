@@ -42,12 +42,13 @@ func main() {
 			},
 
 			Action: func(c *cli.Context) error {
+
 				return command.GetUpdatedTemplate(
 					c.String("path"),
 					c.String("stack-name"),
 					c.String("region"),
 					os.Stdout,
-					new(cfn.DefaultUpdateStrategy),
+					cfn.DefaultUpdateStrategy,
 				)
 			},
 		},
