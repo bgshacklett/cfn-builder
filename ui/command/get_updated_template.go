@@ -3,13 +3,8 @@ package command
 import (
 	"github.com/bgshacklett/extropy/cfn"
 	"io"
-
 	"github.com/bgshacklett/extropy/aws"
-	"github.com/yanatan16/itertools"
-	"github.com/aws/aws-sdk-go/service/cloudformation"
-	"encoding/json"
-	"github.com/bgshacklett/extropy/frames"
-
+	"fmt"
 )
 
 // GetUpdatedTemplate handles the get-updated-template command.
@@ -22,73 +17,48 @@ func GetUpdatedTemplate(
 	updateStrategy cfn.TemplateUpdateStrategy, // Function to update the template
 
 ) error {
-	supportedTypes := []string{
-		"AWS::EC2::SecurityGroup",
-	}
 
-	/*
+
 	// get template for stack
-	originalTemplateBody, err := aws.GetGoformationTemplate(region, stackName)
-	if err != nil {
-		return err
-	}
-	*/
-	// get all resources for stack
-	stackResourcesOuput, err := aws.GetStackResources(region, stackName)
+	originalTemplate, err := aws.GetGoformationTemplate(region, stackName)
 	if err != nil {
 		return err
 	}
 
-	// TODO: MOVE LATER - get list of resources we support out of stack resources
-	var supportedResources frames.SupportedResources
-	for _, resource := range stackResourcesOuput.StackResources {
-		resourceIter := itertools.New(resource)
-		resourceSupported := <-(itertools.Filter(
-			func(resource interface{}) bool {
-				mappedResource := resource.(*cloudformation.StackResource)
-				for t := range supportedTypes {
-					if *mappedResource.ResourceType == supportedTypes[t] {
-						return true
-					}
-				}
-				return false
-			},
-			resourceIter,
-		))
-		raw,err := json.Marshal(resourceSupported)
-		if err != nil {
-			return err
-		}
-		res := &frames.SupportedResource{}
-		json.Unmarshal(raw, res)
-
-		supportedResources = append(supportedResources, *res)
+	// get list of supported resources from all stack resources
+	supportedResources, err := aws.GetSupportedResources(region, stackName)
+	if err != nil {
+		return err
 	}
 
-	// TODO: MOVE LATER - Iterate over each resource resource.Description will hold the descirption
-	cfn.SGBuilder(supportedResources, region)
+	// get generated template from goformation
+	updatedTemplate,err := cfn.BuildTemplate(*supportedResources, region)
+	if err != nil {
+		return nil
+	}
+	j,err := updatedTemplate.JSON()
+	fmt.Println(string(j))
+	fmt.Sprint(originalTemplate)
 
-	//res, err := originalTemplateBody.YAML()
-
-	//_, err = fmt.Fprint(outputWriter, string(res))
-	//
-
-	/* TODO: Figure out update later
+	/* TODO: Figure out update
 
 	updateStrategy Params:
 	(
-	path string,
+	path string, - UNUSED
 	stackName string,
 	region string,
 	original *cloudformation.Template,
+	updatedTemplate *cloudformation.Template,
 	)
-
-	result, err := updateStrategy(path, stackName, region)
+	*/
+	/*
+	result, err := updateStrategy(stackName, region, supportedResources, originalTemplate, updatedTemplate)
 	if err != nil {
 		return err
 	}
 
 	_, err = fmt.Fprint(outputWriter, result)
 	*/
+
 	return nil
 }

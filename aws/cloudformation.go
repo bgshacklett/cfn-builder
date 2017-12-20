@@ -6,7 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 )
 
-// GetStackTemplateBody retrieves template used in live stack
+// GetStackTemplateBody get template used by live stack
 func GetStackTemplateBody(region string, stackName string) (*string ,error) {
 
 	// Create AWS session with region
@@ -24,9 +24,11 @@ func GetStackTemplateBody(region string, stackName string) (*string ,error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return templateOutput.TemplateBody, nil
 }
 
+// GetStackResources get resources created by live stack
 func GetStackResources(region string, stackName string) (*cloudformation.DescribeStackResourcesOutput, error) {
 
 	// Create AWS session with region
@@ -46,7 +48,6 @@ func GetStackResources(region string, stackName string) (*cloudformation.Describ
 	}
 
 	return resourcesOutput, nil
-
 }
 
 

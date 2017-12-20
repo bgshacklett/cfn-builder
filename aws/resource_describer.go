@@ -15,7 +15,7 @@ type ResourceDescriber struct{
 
 
 
-func (r *ResourceDescriber) DescribeResource(resource frames.SupportedResource, region string) error {
+func (r *Resource) DescribeResource(resource frames.SupportedResource, region string) error {
 
 	sess, err := session.NewSession(&aws.Config{
 		Region: aws.String(region),
@@ -39,7 +39,7 @@ func (r *ResourceDescriber) DescribeResource(resource frames.SupportedResource, 
 		}
 
 		//noinspection GoUnresolvedReference - goland garbo
-		r.Description = result.SecurityGroups[0]
+		r.APIDescription = result.SecurityGroups[0]
 
 	default:
 

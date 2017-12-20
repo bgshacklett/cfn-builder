@@ -66,7 +66,7 @@ func (r *testSGDescriber) DescribeResource(
 	securityGroup.GroupId = &groupID
 	securityGroup.GroupName = &groupName
 
-	// Return the SG
+	// Return the SecurityGroup
 	return securityGroup, err
 }
 

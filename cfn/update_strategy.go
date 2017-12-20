@@ -5,16 +5,19 @@ import (
 	"github.com/bgshacklett/extropy/aws"
 	"github.com/yanatan16/itertools"
 	"fmt"
+	"github.com/bgshacklett/extropy/frames"
 )
 
 // TemplateUpdateStrategy defines an interface for functions which
 // intend to update CloudFormation templates from a live environment.
 //type TemplateUpdateStrategy func(interface{}) (*cloudformation.Template, error)
 type TemplateUpdateStrategy func(
-	path string,
+	//path string,
 	stackName string,
 	region string,
+	supportedResources *frames.SupportedResources,
 	original *cloudformation.Template,
+	updatedTemplate *cloudformation.Template,
 ) (interface{}, error)
 /*
 type TemplateUpdateStrategy interface {
@@ -38,25 +41,29 @@ type TemplateUpdateStrategy interface {
 // Execute implements the Execute
 func DefaultUpdateStrategy(
 
-	path string,
+	//path string,
 	stackName string,
 	region string,
+	supportedResources *frames.SupportedResources,
 	original *cloudformation.Template,
+	updatedTemplate *cloudformation.Template,
 
 	//cfnMapper aws.CfnMapper,
 	//resourceDescriber aws.ResourceDescriber,
 
 ) (interface{}, error) {
 
-	var resourceBuilder ResourceBuilder
+	//var resourceBuilder ResourceBuilder
 	var cfnMapper aws.CfnMapper
 	//var resourceDescriber aws.ResourceDescriber
+	finalTemplate := cloudformation.NewTemplate()
 
 	//type resource aws.Resource
-	resources := itertools.New(original.Resources)
-	type resourceType map[string]interface{}
+	//resources := itertools.New(original.Resources)
+
 
 	// Get the Security Groups
+	/*
 	supportedResources := <-(itertools.Filter(
 		func(resource interface{}) bool {
 			mappedResource := resource.(map[string]interface{})
@@ -65,6 +72,7 @@ func DefaultUpdateStrategy(
 		},
 		resources,
 	))
+
 
 	// Get the unsupported resources in a separate list
 	unsupportedResources := <-(itertools.Filter(
@@ -75,7 +83,9 @@ func DefaultUpdateStrategy(
 		},
 		resources,
 	))
+
 	fmt.Println(unsupportedResources)
+	*/
 
 	// Get the physical ID for each Security Group
 	physicalSupportedResourceIDs := <-(itertools.Map(
@@ -96,6 +106,8 @@ func DefaultUpdateStrategy(
 		itertools.New(physicalSupportedResourceIDs),
 	))
 
+
+	/*
 	// Translate the physical description into CloudFormation Resources
 	updatedResources := <-(itertools.Map(
 		func(item interface{}) interface{} {
@@ -104,10 +116,11 @@ func DefaultUpdateStrategy(
 		},
 		itertools.New(physicalResourceDescriptions),
 	))
-	fmt.Println(updatedResources)
+	*/
 
-	updatedTemplate := cloudformation.NewTemplate()
-	fmt.Println(updatedTemplate)
+
+	fmt.Println(physicalResourceDescriptions)
+	fmt.Println(finalTemplate)
 
 	return original, nil
 }

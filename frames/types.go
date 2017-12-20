@@ -10,8 +10,6 @@ type SupportedResource struct {
 	Description string `min:"1" type:"string"`
 
 	// The logical name of the resource specified in the template.
-	//
-	// LogicalResourceId is a required field
 	LogicalResourceId string `type:"string"`
 
 	// The name or unique identifier that corresponds to a physical instance ID
@@ -19,8 +17,6 @@ type SupportedResource struct {
 	PhysicalResourceId string `type:"string"`
 
 	// Current status of the resource.
-	//
-	// ResourceStatus is a required field
 	ResourceStatus string `type:"string" enum:"ResourceStatus"`
 
 	// Success/failure message associated with the resource.
@@ -29,8 +25,6 @@ type SupportedResource struct {
 	// Type of resource. (For more information, go to  AWS Resource Types Reference
 	// (http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-template-resource-type-ref.html)
 	// in the AWS CloudFormation User Guide.)
-	//
-	// ResourceType is a required field
 	ResourceType string `min:"1" type:"string"`
 
 	// Unique identifier of the stack.
