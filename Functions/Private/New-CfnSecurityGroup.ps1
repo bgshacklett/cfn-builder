@@ -37,7 +37,8 @@ function New-CfnSecurityGroup
 
     Write-Debug "SG Logical ID: $sgLogicalId"
 
-    $sgTags = $InputObject.Tags | Where-Object { $_.key -notlike 'aws:*' }
+    [Hashtable[]]$sgTags = $InputObject.Tags `
+                           | Where-Object { $_.key -notlike 'aws:*' }
 
     @{
       $sgLogicalId = @{
