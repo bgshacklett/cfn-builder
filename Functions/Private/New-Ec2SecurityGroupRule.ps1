@@ -66,7 +66,14 @@ function New-Ec2SecurityGroupRule
       # Reduce the properties of peerValue to a Hashtable
       $peerHash = $peerValue.psobject.Properties `
                   | ForEach-Object { $result = @{} } `
-                                   { $result += @{ $_.Name = $_.Value } } `
+                                   {
+                                     $result +=
+                                     @{
+                                       # Force the value to an empty string
+                                       # if it's null.
+                                       $_.Name = ($_.Value, '' -ne $null)[0]
+                                     }
+                                   } `
                                    { $result }
     }
 

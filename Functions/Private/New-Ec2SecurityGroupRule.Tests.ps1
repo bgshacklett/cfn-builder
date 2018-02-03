@@ -22,6 +22,98 @@ foreach ($dep in ($deps | Where-Object { $_ -as [Boolean] -eq $true }))
 #region Tests
 Describe 'New-Ec2SecurityGroupRule' {
 
+  Context 'IPv4 - Rule Description is Null' {
+
+    It 'Produces a rule with "Description" set to an empty string. ' {
+
+      $TestContext =
+      @{
+        'FromPort'   = '80'
+        'ToPort'     = '88'
+        'IpProtocol' = 'tcp'
+        'CidrIp'     = [PSCustomObject]@{
+                         'CidrIp'      = '0.0.0.0/0'
+                         'Description' = $null
+                       }
+      }
+
+      $result = New-Ec2SecurityGroupRule @TestContext
+
+      $result['Description'] | Should -Be ''
+      $result['Description'] | Should -Not -Be $null
+    }
+  }
+
+
+  Context 'IPv6 - Rule Description is Null' {
+
+    It 'Produces a rule with "Description" set to an empty string. ' {
+
+      $TestContext =
+      @{
+        'FromPort'   = '80'
+        'ToPort'     = '88'
+        'IpProtocol' = 'tcp'
+        'CidrIpv6'   = [PSCustomObject]@{
+                         'CidrIpv6'    = '::/0'
+                         'Description' = $null
+                       }
+      }
+
+      $result = New-Ec2SecurityGroupRule @TestContext
+
+      $result['Description'] | Should -Be ''
+      $result['Description'] | Should -Not -Be $null
+    }
+  }
+
+
+  Context 'IPv4 - Rule Description is Empty' {
+
+    It 'Produces a rule with "Description" set to an empty string. ' {
+
+      $TestContext =
+      @{
+        'FromPort'   = '80'
+        'ToPort'     = '88'
+        'IpProtocol' = 'tcp'
+        'CidrIp'     = [PSCustomObject]@{
+                         'CidrIp'      = '0.0.0.0/0'
+                         'Description' = ''
+                       }
+      }
+
+      $result = New-Ec2SecurityGroupRule @TestContext
+
+      $result['Description'] | Should -Be ''
+      $result['Description'] | Should -Not -Be $null
+    }
+  }
+
+
+  Context 'IPv6 - Rule Description is Empty' {
+
+    It 'Produces a rule with "Description" set to an empty string. ' {
+
+      $TestContext =
+      @{
+        'FromPort'   = '80'
+        'ToPort'     = '88'
+        'IpProtocol' = 'tcp'
+        'CidrIpv6'   = [PSCustomObject]@{
+                         'CidrIpv6'    = '::/0'
+                         'Description' = ''
+                       }
+      }
+
+      $result = New-Ec2SecurityGroupRule @TestContext
+
+      $result['Description'] | Should -Be ''
+      $result['Description'] | Should -Not -Be $null
+    }
+  }
+
+
   Context 'Input allows access to an IPv4 CIDR Range' {
 
     It 'Returns valid output' {
