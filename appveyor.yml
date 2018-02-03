@@ -7,6 +7,7 @@ max_jobs: 1
 install:
   - ps: Install-PackageProvider -Name NuGet -Force | Out-Null
   - ps: Install-Module Pester -Repository PSGallery -Force
+  - ps: Install-Module AWSPowerShell -Repository PSGallery -Force
 
 build: false
 
@@ -16,7 +17,7 @@ test_script:
                        -ExecutionPolicy Bypass
                        -NoProfile
                        -NonInteractive
-                       -Command Invoke-Pester
+                       -Command "Import-Module AWSPowerShell; Invoke-Pester"
                        -OutputFormat NUnitXml
                        -OutputFile TestResult.xml
 
