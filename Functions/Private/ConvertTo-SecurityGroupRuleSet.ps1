@@ -33,7 +33,7 @@ function ConvertTo-SecurityGroupRuleSet
     }
 
     # Aggregating all of the peer types and pass them on for rule creation
-    $InputObject.IpRanges +
+    $InputObject.Ipv4Ranges +
     $InputObject.Ipv6Ranges +
     $InputObject.PrefixListIds +
     $InputObject.UserIdGroupPairs `

@@ -27,10 +27,12 @@ function ConvertTo-Ec2SecurityGroupRule
     $fmtRuleContext =
 @'
 Received the following input...
-  Port Range:   {0}-{1}
-  Ip Protocol:  {2}
-  Input Object: {3}
-  Region:       {4}
+  Port Range:    {0}-{1}
+  Ip Protocol:   {2}
+  Input Object:  {3}
+  Region:        {4}
+  FlowDirection: {5}
+  Rule Type:     {6}
 '@
 
     $peerRelationship =
@@ -39,9 +41,9 @@ Received the following input...
       'Egress'  = 'Destination'
     }
 
-    $peerType =
+    $peerTypeMap =
     @{
-      'Ipv4Range'       = 'CidrIp'
+      'IpRange'         = 'CidrIp'
       'Ipv6Range'       = 'CidrIpv6'
       'PrefixListId'    = 'DestinationPrefixListId'
       'UserIdGroupPair' = "$($peerRelationship.$FlowDirection)SecurityGroupId"
@@ -50,13 +52,17 @@ Received the following input...
 
   Process
   {
+    $ruleType = $InputObject.GetType().Name
+
     Write-Verbose 'Converting an IpPermission entry to an EC2 SG Rule'
 
     Write-Debug ($fmtRuleContext -f $FromPort,
                                     $ToPort,
                                     $IpProtocol,
                                     $InputObject,
-                                    $Region)
+                                    $Region,
+                                    $FlowDirection,
+                                    $ruleType)
 
     $ruleProperties =
     @{
@@ -65,9 +71,7 @@ Received the following input...
       'IpProtocol' = $IpProtocol
     }
 
-    $ruleType = $InputObject.GetType().Name
-
-    Write-Verbose ('The peer type is: "{0}"' -f $peerType.$ruleType)
+    Write-Verbose ('The peer type is: "{0}"' -f $peerTypeMap.$ruleType)
 
     # UserIdGroupPairs need to be treated differently because they require
     # further discovery
@@ -86,7 +90,8 @@ Received the following input...
       $peer = $InputObject
     }
 
-    $ruleProperties.Add($peerType.$ruleType, $peer)
+    # !@#%*^&
+    $ruleProperties.Add($peerTypeMap.$ruleType, $peer)
 
     New-Ec2SecurityGroupRule @ruleProperties
   }
