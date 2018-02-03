@@ -56,7 +56,7 @@ Describe 'New-CfnSecurityGroup' {
           )
         }
       )
-      'Tags'             = @(
+      'Tags'             = [Amazon.Ec2.Model.Tag[]]@(
         @{
           'Key'   = 'Key1'
           'Value' = 'Value1'
@@ -130,7 +130,7 @@ Describe 'New-CfnSecurityGroup' {
           )
         }
       )
-      'Tags'             = @(
+      'Tags'             = [Amazon.Ec2.Model.Tag[]]@(
         @{
           'Key'   = 'Key1'
           'Value' = 'Value1'
