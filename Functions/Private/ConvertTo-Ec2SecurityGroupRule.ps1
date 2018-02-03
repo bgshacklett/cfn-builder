@@ -41,7 +41,7 @@ Received the following input...
 
     $peerType =
     @{
-      'String'          = 'CidrIp'
+      'Ipv4Range'       = 'CidrIp'
       'Ipv6Range'       = 'CidrIpv6'
       'PrefixListId'    = 'DestinationPrefixListId'
       'UserIdGroupPair' = "$($peerRelationship.$FlowDirection)SecurityGroupId"
