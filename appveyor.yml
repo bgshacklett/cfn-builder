@@ -15,15 +15,8 @@ build: false
 
 
 test_script:
-  - ps: powershell.exe -Version 5
-                       -ExecutionPolicy Bypass
-                       -NoProfile
-                       -NonInteractive
-                       -Command {
-                                  Import-Module AWSPowerShell;
-                                  Invoke-Pester -OutputFormat NUnitXml `
-                                                -OutputFile TestResult.xml
-                                }
+  - ps: Import-Module AWSPowerShell
+  - ps: Invoke-Pester -OutputFormat NUnitXml -OutputFile TestResult.xml
 
 
 after_test:
