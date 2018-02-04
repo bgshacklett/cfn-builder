@@ -1,0 +1,23 @@
+# See http://www.appveyor.com/docs/appveyor-yml
+
+version: 0.1.1.{build}
+
+max_jobs: 1
+
+install:
+  - ps: Install-PackageProvider -Name NuGet -Force | Out-Null
+  - ps: Install-Module Pester -Repository PSGallery -Force
+  - ps: Install-Module AWSPowerShell -Repository PSGallery
+                                     -Force
+                                     -SkipPublisherCheck
+
+build: false
+
+
+test_script:
+  - ps: Import-Module AWSPowerShell
+  - ps: Invoke-Pester -OutputFormat NUnitXml -OutputFile TestResult.xml
+
+
+after_test:
+  - ps: (New-Object 'System.Net.WebClient').UploadFile("https://ci.appveyor.com/api/testresults/nunit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path 'TestResult.xml'))
